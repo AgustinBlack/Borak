@@ -16,6 +16,7 @@ const Rutine = () => {
     const filteredExercises = exercises.filter((exercise) =>
         exercise.name.toLowerCase().includes(query.toLowerCase())
     )
+
     
     const rutine = rutines.find(r => r.id === 1)
     
