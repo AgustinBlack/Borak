@@ -22,7 +22,7 @@ export default function HamburgerMenu() {
           <Link className={clases.link} to="/seccion/Progresos">Progresos</Link>
           <Link className={clases.link} to="/seccion/Objetivos">Objetivos</Link>
           <Link className={clases.link} to="/seccion/Perfil">Perfil</Link>
-          <Link className={clases.link} to="/seccion/Nosotros">Nosotros</Link>
+          <Link className={clases.link} to="/seccion/US">Nosotros</Link>
         </ul>
       </div>
     </>

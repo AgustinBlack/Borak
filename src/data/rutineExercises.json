@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1,
+    "rutineId": 1,
+    "programId": 1,
+    "day": 1,
+    "exerciseId": 1,
+    "sets": 4,
+    "reps": "8-10",
+    "rest": 120
+  },
+  {
+    "id": 2,
+    "rutineId": 1,
+    "programId": 1,
+    "day": 1,
+    "exerciseId": 5,
+    "sets": 3,
+    "reps": "10-12",
+    "rest": 90
+  },
+  {
+    "id": 3,
+    "rutineId": 1,
+    "programId": 1,
+    "day": 2,
+    "exerciseId": 10,
+    "sets": 4,
+    "reps": "6-8",
+    "rest": 150
+  },
+  {
+    "id": 4,
+    "rutineId": 1,
+    "programId": 1,
+    "day": 2,
+    "exerciseId": 12,
+    "sets": 3,
+    "reps": "10-12",
+    "rest": 90
+  },
+  {
+    "id": 5,
+    "rutineId": 1,
+    "programId": 2,
+    "day": 1,
+    "exerciseId": 1,
+    "sets": 5,
+    "reps": "5",
+    "rest": 180
+  },
+  {
+    "id": 6,
+    "rutineId": 1,
+    "programId": 2,
+    "day": 1,
+    "exerciseId": 10,
+    "sets": 5,
+    "reps": "5",
+    "rest": 180
+  }
+]

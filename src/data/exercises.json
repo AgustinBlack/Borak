@@ -1,0 +1,726 @@
+[
+  {
+    "id": 1,
+    "name": "Press de banca con barra",
+    "primaryMuscle": "Pectoral mayor",
+    "secondaryMuscles": [
+      "Deltoide anterior",
+      "Tríceps braquial"
+    ],
+    "type": "multiarticular",
+    "equipment": "Barra",
+    "image": "/images/press-de-banca-con-barra.jpg",
+    "video": ""
+  },
+  {
+    "id": 2,
+    "name": "Press inclinado con barra",
+    "primaryMuscle": "Pectoral mayor",
+    "secondaryMuscles": [
+      "Deltoide anterior",
+      "Tríceps braquial"
+    ],
+    "type": "multiarticular",
+    "equipment": "Barra",
+    "image": "/images/press-inclinado-con-barra.jpg",
+    "video": ""
+  },
+  {
+    "id": 3,
+    "name": "Press inclinado con mancuernas",
+    "primaryMuscle": "Pectoral mayor",
+    "secondaryMuscles": [
+      "Deltoide anterior",
+      "Tríceps braquial"
+    ],
+    "type": "multiarticular",
+    "equipment": "Mancuernas",
+    "image": "/images/press-inclinado-con-mancuernas.jpg",
+    "video": ""
+  },
+  {
+    "id": 4,
+    "name": "Fondos en paralelas",
+    "primaryMuscle": "Pectoral mayor",
+    "secondaryMuscles": [
+      "Tríceps braquial",
+      "Deltoide anterior"
+    ],
+    "type": "multiarticular",
+    "equipment": "Peso corporal",
+    "image": "/images/fondos-en-paralelas.jpg",
+    "video": ""
+  },
+  {
+    "id": 5,
+    "name": "Press en máquina convergente",
+    "primaryMuscle": "Pectoral mayor",
+    "secondaryMuscles": [
+      "Tríceps braquial"
+    ],
+    "type": "multiarticular",
+    "equipment": "Máquina",
+    "image": "/images/press-en-maquina-convergente.jpg",
+    "video": ""
+  },
+  {
+    "id": 6,
+    "name": "Press declinado con barra",
+    "primaryMuscle": "Pectoral mayor",
+    "secondaryMuscles": [
+      "Tríceps braquial"
+    ],
+    "type": "multiarticular",
+    "equipment": "Barra",
+    "image": "/images/press-declinado-con-barra.jpg",
+    "video": ""
+  },
+  {
+    "id": 7,
+    "name": "Aperturas con mancuernas",
+    "primaryMuscle": "Pectoral mayor",
+    "secondaryMuscles": [],
+    "type": "monoarticular",
+    "equipment": "Mancuernas",
+    "image": "/images/aperturas-con-mancuernas.jpg",
+    "video": ""
+  },
+  {
+    "id": 8,
+    "name": "Cruce de poleas",
+    "primaryMuscle": "Pectoral mayor",
+    "secondaryMuscles": [],
+    "type": "monoarticular",
+    "equipment": "Polea",
+    "image": "/images/cruce-de-poleas.jpg",
+    "video": ""
+  },
+  {
+    "id": 9,
+    "name": "Press en máquina Hammer",
+    "primaryMuscle": "Pectoral mayor",
+    "secondaryMuscles": [
+      "Tríceps braquial"
+    ],
+    "type": "multiarticular",
+    "equipment": "Máquina",
+    "image": "/images/press-en-maquina-hammer.jpg",
+    "video": ""
+  },
+  {
+    "id": 10,
+    "name": "Flexiones de brazos",
+    "primaryMuscle": "Pectoral mayor",
+    "secondaryMuscles": [
+      "Tríceps braquial",
+      "Deltoide anterior"
+    ],
+    "type": "multiarticular",
+    "equipment": "Peso corporal",
+    "image": "/images/flexiones-de-brazos.jpg",
+    "video": ""
+  },
+  {
+    "id": 11,
+    "name": "Dominadas pronas",
+    "primaryMuscle": "Dorsal ancho",
+    "secondaryMuscles": [
+      "Bíceps braquial",
+      "Romboides"
+    ],
+    "type": "multiarticular",
+    "equipment": "Peso corporal",
+    "image": "/images/dominadas-pronas.jpg",
+    "video": ""
+  },
+  {
+    "id": 12,
+    "name": "Dominadas supinas",
+    "primaryMuscle": "Dorsal ancho",
+    "secondaryMuscles": [
+      "Bíceps braquial"
+    ],
+    "type": "multiarticular",
+    "equipment": "Peso corporal",
+    "image": "/images/dominadas-supinas.jpg",
+    "video": ""
+  },
+  {
+    "id": 13,
+    "name": "Remo con barra",
+    "primaryMuscle": "Dorsal ancho",
+    "secondaryMuscles": [
+      "Trapecio",
+      "Bíceps braquial"
+    ],
+    "type": "multiarticular",
+    "equipment": "Barra",
+    "image": "/images/remo-con-barra.jpg",
+    "video": ""
+  },
+  {
+    "id": 14,
+    "name": "Remo Pendlay",
+    "primaryMuscle": "Dorsal ancho",
+    "secondaryMuscles": [
+      "Trapecio",
+      "Bíceps braquial"
+    ],
+    "type": "multiarticular",
+    "equipment": "Barra",
+    "image": "/images/remo-pendlay.jpg",
+    "video": ""
+  },
+  {
+    "id": 15,
+    "name": "Jalón al pecho",
+    "primaryMuscle": "Dorsal ancho",
+    "secondaryMuscles": [
+      "Bíceps braquial"
+    ],
+    "type": "multiarticular",
+    "equipment": "Polea",
+    "image": "/images/jalon-al-pecho.jpg",
+    "video": ""
+  },
+  {
+    "id": 16,
+    "name": "Remo en máquina",
+    "primaryMuscle": "Dorsal ancho",
+    "secondaryMuscles": [
+      "Romboides",
+      "Trapecio"
+    ],
+    "type": "multiarticular",
+    "equipment": "Máquina",
+    "image": "/images/remo-en-maquina.jpg",
+    "video": ""
+  },
+  {
+    "id": 17,
+    "name": "Remo con mancuerna unilateral",
+    "primaryMuscle": "Dorsal ancho",
+    "secondaryMuscles": [
+      "Romboides"
+    ],
+    "type": "multiarticular",
+    "equipment": "Mancuernas",
+    "image": "/images/remo-con-mancuerna-unilateral.jpg",
+    "video": ""
+  },
+  {
+    "id": 18,
+    "name": "Pullover en polea",
+    "primaryMuscle": "Dorsal ancho",
+    "secondaryMuscles": [],
+    "type": "monoarticular",
+    "equipment": "Polea",
+    "image": "/images/pullover-en-polea.jpg",
+    "video": ""
+  },
+  {
+    "id": 19,
+    "name": "Pullover con mancuerna",
+    "primaryMuscle": "Dorsal ancho",
+    "secondaryMuscles": [],
+    "type": "monoarticular",
+    "equipment": "Mancuernas",
+    "image": "/images/pullover-con-mancuerna.jpg",
+    "video": ""
+  },
+  {
+    "id": 20,
+    "name": "Remo en polea baja",
+    "primaryMuscle": "Dorsal ancho",
+    "secondaryMuscles": [
+      "Romboides"
+    ],
+    "type": "multiarticular",
+    "equipment": "Polea",
+    "image": "/images/remo-en-polea-baja.jpg",
+    "video": ""
+  },
+  {
+    "id": 21,
+    "name": "Press militar con barra",
+    "primaryMuscle": "Deltoide",
+    "secondaryMuscles": [
+      "Tríceps braquial"
+    ],
+    "type": "multiarticular",
+    "equipment": "Barra",
+    "image": "/images/press-militar-con-barra.jpg",
+    "video": ""
+  },
+  {
+    "id": 22,
+    "name": "Press militar con mancuernas",
+    "primaryMuscle": "Deltoide",
+    "secondaryMuscles": [
+      "Tríceps braquial"
+    ],
+    "type": "multiarticular",
+    "equipment": "Mancuernas",
+    "image": "/images/press-militar-con-mancuernas.jpg",
+    "video": ""
+  },
+  {
+    "id": 23,
+    "name": "Press Arnold",
+    "primaryMuscle": "Deltoide",
+    "secondaryMuscles": [
+      "Tríceps braquial"
+    ],
+    "type": "multiarticular",
+    "equipment": "Mancuernas",
+    "image": "/images/press-arnold.jpg",
+    "video": ""
+  },
+  {
+    "id": 24,
+    "name": "Elevaciones laterales",
+    "primaryMuscle": "Deltoide",
+    "secondaryMuscles": [],
+    "type": "monoarticular",
+    "equipment": "Mancuernas",
+    "image": "/images/elevaciones-laterales.jpg",
+    "video": ""
+  },
+  {
+    "id": 25,
+    "name": "Elevaciones laterales en polea",
+    "primaryMuscle": "Deltoide",
+    "secondaryMuscles": [],
+    "type": "monoarticular",
+    "equipment": "Polea",
+    "image": "/images/elevaciones-laterales-en-polea.jpg",
+    "video": ""
+  },
+  {
+    "id": 26,
+    "name": "Elevaciones frontales",
+    "primaryMuscle": "Deltoide",
+    "secondaryMuscles": [],
+    "type": "monoarticular",
+    "equipment": "Mancuernas",
+    "image": "/images/elevaciones-frontales.jpg",
+    "video": ""
+  },
+  {
+    "id": 27,
+    "name": "Face pull",
+    "primaryMuscle": "Deltoide",
+    "secondaryMuscles": [
+      "Trapecio",
+      "Romboides"
+    ],
+    "type": "monoarticular",
+    "equipment": "Polea",
+    "image": "/images/face-pull.jpg",
+    "video": ""
+  },
+  {
+    "id": 28,
+    "name": "Pájaros con mancuernas",
+    "primaryMuscle": "Deltoide",
+    "secondaryMuscles": [],
+    "type": "monoarticular",
+    "equipment": "Mancuernas",
+    "image": "/images/pajaros-con-mancuernas.jpg",
+    "video": ""
+  },
+  {
+    "id": 29,
+    "name": "Remo al mentón",
+    "primaryMuscle": "Deltoide",
+    "secondaryMuscles": [
+      "Trapecio"
+    ],
+    "type": "multiarticular",
+    "equipment": "Barra",
+    "image": "/images/remo-al-menton.jpg",
+    "video": ""
+  },
+  {
+    "id": 30,
+    "name": "Press en máquina de hombro",
+    "primaryMuscle": "Deltoide",
+    "secondaryMuscles": [
+      "Tríceps braquial"
+    ],
+    "type": "multiarticular",
+    "equipment": "Máquina",
+    "image": "/images/press-en-maquina-de-hombro.jpg",
+    "video": ""
+  },
+  {
+    "id": 31,
+    "name": "Sentadilla con barra",
+    "primaryMuscle": "Cuádriceps",
+    "secondaryMuscles": [
+      "Glúteo mayor",
+      "Isquiotibiales"
+    ],
+    "type": "multiarticular",
+    "equipment": "Barra",
+    "image": "/images/sentadilla-con-barra.jpg",
+    "video": ""
+  },
+  {
+    "id": 32,
+    "name": "Sentadilla frontal",
+    "primaryMuscle": "Cuádriceps",
+    "secondaryMuscles": [
+      "Glúteo mayor"
+    ],
+    "type": "multiarticular",
+    "equipment": "Barra",
+    "image": "/images/sentadilla-frontal.jpg",
+    "video": ""
+  },
+  {
+    "id": 33,
+    "name": "Prensa de piernas",
+    "primaryMuscle": "Cuádriceps",
+    "secondaryMuscles": [
+      "Glúteo mayor"
+    ],
+    "type": "multiarticular",
+    "equipment": "Máquina",
+    "image": "/images/prensa-de-piernas.jpg",
+    "video": ""
+  },
+  {
+    "id": 34,
+    "name": "Zancadas caminando",
+    "primaryMuscle": "Cuádriceps",
+    "secondaryMuscles": [
+      "Glúteo mayor"
+    ],
+    "type": "multiarticular",
+    "equipment": "Mancuernas",
+    "image": "/images/zancadas-caminando.jpg",
+    "video": ""
+  },
+  {
+    "id": 35,
+    "name": "Bulgarian split squat",
+    "primaryMuscle": "Cuádriceps",
+    "secondaryMuscles": [
+      "Glúteo mayor"
+    ],
+    "type": "multiarticular",
+    "equipment": "Mancuernas",
+    "image": "/images/bulgarian-split-squat.jpg",
+    "video": ""
+  },
+  {
+    "id": 36,
+    "name": "Step up",
+    "primaryMuscle": "Cuádriceps",
+    "secondaryMuscles": [
+      "Glúteo mayor"
+    ],
+    "type": "multiarticular",
+    "equipment": "Mancuernas",
+    "image": "/images/step-up.jpg",
+    "video": ""
+  },
+  {
+    "id": 37,
+    "name": "Extensión de rodilla",
+    "primaryMuscle": "Cuádriceps",
+    "secondaryMuscles": [],
+    "type": "monoarticular",
+    "equipment": "Máquina",
+    "image": "/images/extension-de-rodilla.jpg",
+    "video": ""
+  },
+  {
+    "id": 38,
+    "name": "Hack squat",
+    "primaryMuscle": "Cuádriceps",
+    "secondaryMuscles": [
+      "Glúteo mayor"
+    ],
+    "type": "multiarticular",
+    "equipment": "Máquina",
+    "image": "/images/hack-squat.jpg",
+    "video": ""
+  },
+  {
+    "id": 39,
+    "name": "Sentadilla goblet",
+    "primaryMuscle": "Cuádriceps",
+    "secondaryMuscles": [
+      "Glúteo mayor"
+    ],
+    "type": "multiarticular",
+    "equipment": "Mancuernas",
+    "image": "/images/sentadilla-goblet.jpg",
+    "video": ""
+  },
+  {
+    "id": 40,
+    "name": "Sissy squat",
+    "primaryMuscle": "Cuádriceps",
+    "secondaryMuscles": [],
+    "type": "monoarticular",
+    "equipment": "Peso corporal",
+    "image": "/images/sissy-squat.jpg",
+    "video": ""
+  },
+  {
+    "id": 41,
+    "name": "Peso muerto rumano",
+    "primaryMuscle": "Isquiotibiales",
+    "secondaryMuscles": [
+      "Glúteo mayor"
+    ],
+    "type": "multiarticular",
+    "equipment": "Barra",
+    "image": "/images/peso-muerto-rumano.jpg",
+    "video": ""
+  },
+  {
+    "id": 42,
+    "name": "Peso muerto convencional",
+    "primaryMuscle": "Isquiotibiales",
+    "secondaryMuscles": [
+      "Glúteo mayor",
+      "Erectores espinales"
+    ],
+    "type": "multiarticular",
+    "equipment": "Barra",
+    "image": "/images/peso-muerto-convencional.jpg",
+    "video": ""
+  },
+  {
+    "id": 43,
+    "name": "Curl femoral acostado",
+    "primaryMuscle": "Isquiotibiales",
+    "secondaryMuscles": [],
+    "type": "monoarticular",
+    "equipment": "Máquina",
+    "image": "/images/curl-femoral-acostado.jpg",
+    "video": ""
+  },
+  {
+    "id": 44,
+    "name": "Curl femoral sentado",
+    "primaryMuscle": "Isquiotibiales",
+    "secondaryMuscles": [],
+    "type": "monoarticular",
+    "equipment": "Máquina",
+    "image": "/images/curl-femoral-sentado.jpg",
+    "video": ""
+  },
+  {
+    "id": 45,
+    "name": "Hip thrust",
+    "primaryMuscle": "Isquiotibiales",
+    "secondaryMuscles": [
+      "Glúteo mayor"
+    ],
+    "type": "multiarticular",
+    "equipment": "Barra",
+    "image": "/images/hip-thrust.jpg",
+    "video": ""
+  },
+  {
+    "id": 46,
+    "name": "Buenos días",
+    "primaryMuscle": "Isquiotibiales",
+    "secondaryMuscles": [
+      "Glúteo mayor"
+    ],
+    "type": "multiarticular",
+    "equipment": "Barra",
+    "image": "/images/buenos-dias.jpg",
+    "video": ""
+  },
+  {
+    "id": 47,
+    "name": "Nordic curl",
+    "primaryMuscle": "Isquiotibiales",
+    "secondaryMuscles": [],
+    "type": "monoarticular",
+    "equipment": "Peso corporal",
+    "image": "/images/nordic-curl.jpg",
+    "video": ""
+  },
+  {
+    "id": 48,
+    "name": "Peso muerto a una pierna",
+    "primaryMuscle": "Isquiotibiales",
+    "secondaryMuscles": [
+      "Glúteo mayor"
+    ],
+    "type": "multiarticular",
+    "equipment": "Mancuernas",
+    "image": "/images/peso-muerto-a-una-pierna.jpg",
+    "video": ""
+  },
+  {
+    "id": 49,
+    "name": "Curl con barra",
+    "primaryMuscle": "Bíceps braquial",
+    "secondaryMuscles": [],
+    "type": "monoarticular",
+    "equipment": "Barra",
+    "image": "/images/curl-con-barra.jpg",
+    "video": ""
+  },
+  {
+    "id": 50,
+    "name": "Curl alterno con mancuernas",
+    "primaryMuscle": "Bíceps braquial",
+    "secondaryMuscles": [],
+    "type": "monoarticular",
+    "equipment": "Mancuernas",
+    "image": "/images/curl-alterno-con-mancuernas.jpg",
+    "video": ""
+  },
+  {
+    "id": 51,
+    "name": "Curl predicador",
+    "primaryMuscle": "Bíceps braquial",
+    "secondaryMuscles": [],
+    "type": "monoarticular",
+    "equipment": "Máquina",
+    "image": "/images/curl-predicador.jpg",
+    "video": ""
+  },
+  {
+    "id": 52,
+    "name": "Curl en polea baja",
+    "primaryMuscle": "Bíceps braquial",
+    "secondaryMuscles": [],
+    "type": "monoarticular",
+    "equipment": "Polea",
+    "image": "/images/curl-en-polea-baja.jpg",
+    "video": ""
+  },
+  {
+    "id": 53,
+    "name": "Curl martillo",
+    "primaryMuscle": "Bíceps braquial",
+    "secondaryMuscles": [
+      "Braquial anterior"
+    ],
+    "type": "monoarticular",
+    "equipment": "Mancuernas",
+    "image": "/images/curl-martillo.jpg",
+    "video": ""
+  },
+  {
+    "id": 54,
+    "name": "Press cerrado",
+    "primaryMuscle": "Tríceps braquial",
+    "secondaryMuscles": [
+      "Pectoral mayor"
+    ],
+    "type": "multiarticular",
+    "equipment": "Barra",
+    "image": "/images/press-cerrado.jpg",
+    "video": ""
+  },
+  {
+    "id": 55,
+    "name": "Extensión en polea",
+    "primaryMuscle": "Tríceps braquial",
+    "secondaryMuscles": [],
+    "type": "monoarticular",
+    "equipment": "Polea",
+    "image": "/images/extension-en-polea.jpg",
+    "video": ""
+  },
+  {
+    "id": 56,
+    "name": "Fondos en banco",
+    "primaryMuscle": "Tríceps braquial",
+    "secondaryMuscles": [
+      "Deltoide anterior"
+    ],
+    "type": "multiarticular",
+    "equipment": "Peso corporal",
+    "image": "/images/fondos-en-banco.jpg",
+    "video": ""
+  },
+  {
+    "id": 57,
+    "name": "Extensión por encima de la cabeza",
+    "primaryMuscle": "Tríceps braquial",
+    "secondaryMuscles": [],
+    "type": "monoarticular",
+    "equipment": "Mancuernas",
+    "image": "/images/extension-por-encima-de-la-cabeza.jpg",
+    "video": ""
+  },
+  {
+    "id": 58,
+    "name": "Patada de tríceps",
+    "primaryMuscle": "Tríceps braquial",
+    "secondaryMuscles": [],
+    "type": "monoarticular",
+    "equipment": "Mancuernas",
+    "image": "/images/patada-de-triceps.jpg",
+    "video": ""
+  },
+  {
+    "id": 59,
+    "name": "Crunch en suelo",
+    "primaryMuscle": "Recto abdominal",
+    "secondaryMuscles": [],
+    "type": "monoarticular",
+    "equipment": "Peso corporal",
+    "image": "/images/crunch-en-suelo.jpg",
+    "video": ""
+  },
+  {
+    "id": 60,
+    "name": "Elevaciones de piernas colgado",
+    "primaryMuscle": "Recto abdominal",
+    "secondaryMuscles": [
+      "Flexores de cadera"
+    ],
+    "type": "multiarticular",
+    "equipment": "Peso corporal",
+    "image": "/images/elevaciones-de-piernas-colgado.jpg",
+    "video": ""
+  },
+  {
+    "id": 61,
+    "name": "Crunch en polea",
+    "primaryMuscle": "Recto abdominal",
+    "secondaryMuscles": [],
+    "type": "monoarticular",
+    "equipment": "Polea",
+    "image": "/images/crunch-en-polea.jpg",
+    "video": ""
+  },
+  {
+    "id": 62,
+    "name": "Ab wheel rollout",
+    "primaryMuscle": "Recto abdominal",
+    "secondaryMuscles": [
+      "Transverso abdominal"
+    ],
+    "type": "multiarticular",
+    "equipment": "Rueda abdominal",
+    "image": "/images/ab-wheel-rollout.jpg",
+    "video": ""
+  },
+  {
+    "id": 63,
+    "name": "Plancha frontal",
+    "primaryMuscle": "Recto abdominal",
+    "secondaryMuscles": [
+      "Transverso abdominal"
+    ],
+    "type": "isométrico",
+    "equipment": "Peso corporal",
+    "image": "/images/plancha-frontal.jpg",
+    "video": ""
+  }
+]

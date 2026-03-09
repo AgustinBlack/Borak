@@ -1,0 +1,14 @@
+[
+  {
+    "id": 1,
+    "name": "Hipertrofia Base",
+    "description": "Programa inicial enfocado en hipertrofia con ejercicios compuestos.",
+    "daysPerWeek": 3
+  },
+  {
+    "id": 2,
+    "name": "Fuerza Inicial",
+    "description": "Programa enfocado en aumentar fuerza en movimientos básicos.",
+    "daysPerWeek": 3
+  }
+]
