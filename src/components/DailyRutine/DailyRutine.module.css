@@ -1,0 +1,53 @@
+.container {
+    padding: 2rem;
+}
+
+.ejercicios {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.ejercicio {
+    padding: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+}
+
+.ejercicio h3 {
+    margin-top: 0;
+}
+
+.inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.inputs label {
+    display: flex;
+    flex-direction: column;
+    font-weight: bold;
+}
+
+.inputs input {
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-top: 0.25rem;
+}
+
+.guardar {
+    margin-top: 2rem;
+    padding: 0.75rem 1.5rem;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.guardar:hover {
+    background-color: #218838;
+}

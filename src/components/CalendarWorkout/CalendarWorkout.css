@@ -1,0 +1,27 @@
+/* .react-calendar__month-view__days button{
+  margin: 1px;
+} */
+
+.react-calendar__tile--now {
+  background-color: grey !important;
+  color: white !important;
+}
+
+.training-day {
+  border: 2px solid #2196F3 !important;
+  color: black !important;
+}
+
+.completed-day {
+  border: 2px solid #4CAF50 !important;
+  color: black !important;
+}
+
+.missed-day {
+  border: 2px solid #F44336 !important;
+  color: black !important;
+}
+
+.react-calendar__tile {
+  border-radius: 50px;
+}

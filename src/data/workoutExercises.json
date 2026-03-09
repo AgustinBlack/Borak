@@ -1,0 +1,52 @@
+[
+  {
+    "id": 1,
+    "workoutId": 1,
+    "exerciseId": 1,
+    "sets": 4,
+    "reps": 8,
+    "weight": 80
+  },
+  {
+    "id": 2,
+    "workoutId": 1,
+    "exerciseId": 5,
+    "sets": 3,
+    "reps": 10,
+    "weight": 25
+  },
+
+  {
+    "id": 3,
+    "workoutId": 4,
+    "exerciseId": 1,
+    "sets": 4,
+    "reps": 8,
+    "weight": 85
+  },
+  {
+    "id": 4,
+    "workoutId": 4,
+    "exerciseId": 5,
+    "sets": 3,
+    "reps": 10,
+    "weight": 27.5
+  },
+
+  {
+    "id": 5,
+    "workoutId": 7,
+    "exerciseId": 1,
+    "sets": 4,
+    "reps": 8,
+    "weight": 90
+  },
+  {
+    "id": 6,
+    "workoutId": 7,
+    "exerciseId": 5,
+    "sets": 3,
+    "reps": 10,
+    "weight": 30
+  }
+]
