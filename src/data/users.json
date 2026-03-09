@@ -3,6 +3,21 @@
     "id": 1,
     "name": "Andrés Di Silvio",
     "email": "tutujr@test.com",
-    "level": "intermedio"
+    "password": "1234",
+    "role": "cliente"
+  },
+  {
+    "id": 2,
+    "name": "Admin",
+    "email": "admin@test.com",
+    "password": "1234",
+    "role": "pf"
+  },
+  {
+    "id": 3,
+    "name": "Juan",
+    "email": "juan@test.com",
+    "password": "1234",
+    "role": "cliente"
   }
 ]
