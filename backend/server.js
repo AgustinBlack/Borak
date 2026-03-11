@@ -1,17 +1,20 @@
-const express = require("express")
-const cors = require("cors")
+const express = require("express");
+const pool = require("./config/db");
 
-const app = express()
+const app = express();
 
-app.use(cors())
-app.use(express.json())
+app.use(express.json());
 
-app.get("/", (req, res) => {
-  res.send("Backend funcionando")
-})
+app.get("/users", async (req, res) => {
+  try {
+    const users = await pool.query("SELECT * FROM users");
+    res.json(users.rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error del servidor");
+  }
+});
 
-const PORT = 3000
-
-app.listen(PORT, () => {
-  console.log(`Servidor corriendo en puerto ${PORT}`)
-})
+app.listen(3000, () => {
+  console.log("Servidor corriendo en puerto 3000");
+});
