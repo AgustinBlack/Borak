@@ -1,9 +1,6 @@
-import { useState } from "react";
-import users from "../../data/users.json";
-import rutines from "../../data/rutines.json";
+import { useState, useEffect } from "react";
 import styles from "./AdminClients.module.css";
 
-// Simulamos una base de datos de ejercicios (luego lo puedes pasar a un ejercicios.json)
 const ejerciciosDB = [
     { id: 1, name: "Press de Banca", muscle: "Pecho" },
     { id: 2, name: "Sentadilla Libre", muscle: "Piernas" },
@@ -13,244 +10,177 @@ const ejerciciosDB = [
     { id: 6, name: "Press Militar", muscle: "Hombros" }
 ];
 
-const AdminClients = () => {
+// 1. RECIBIMOS 'user' COMO PROP (Esto arregla tu ReferenceError)
+const AdminClients = ({ user }) => {
     const [searchTerm, setSearchTerm] = useState("");
-    const [usersData, setUsersData] = useState(users);
-    const [rutinesData, setRutinesData] = useState(rutines); 
-    
-    // Estados para modales principales
+    const [usersData, setUsersData] = useState([]); // Ahora empieza vacío
+    const [loading, setLoading] = useState(true);
+
     const [selectedUser, setSelectedUser] = useState(null);
     const [showAssignModal, setShowAssignModal] = useState(false);
     const [showCreateModal, setShowCreateModal] = useState(false);
-    
-    // --- ESTADOS PARA CREAR RUTINA PERSONALIZADA ---
-    const [targetClient, setTargetClient] = useState(""); // Cliente al que se le asignará
+
+    const [targetClient, setTargetClient] = useState("");
     const [newRutineName, setNewRutineName] = useState("");
-    const [routineExercises, setRoutineExercises] = useState([]); // Lista de ejercicios añadidos
-    
-    // Controles para añadir un ejercicio específico a la lista
+    const [routineExercises, setRoutineExercises] = useState([]);
+
     const [selectedExercise, setSelectedExercise] = useState("");
     const [series, setSeries] = useState("");
     const [reps, setReps] = useState("");
     const [weight, setWeight] = useState("");
 
-    const filteredUsers = usersData.filter(user => 
-        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase())
+    // 2. CARGAR CLIENTES REALES DE LA DB
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const response = await fetch("http://localhost:3000/users");
+                const data = await response.json();
+                // Filtramos para ver solo clientes, no a otros profes
+                setUsersData(data.filter(u => u.role === 'user'));
+                setLoading(false);
+            } catch (error) {
+                console.error("Error al cargar usuarios:", error);
+                setLoading(false);
+            }
+        };
+        fetchUsers();
+    }, []);
+
+    const filteredUsers = usersData.filter(u =>
+        u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        u.email.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const getRutineName = (rutineId) => {
-        const rutine = rutinesData.find(r => r.id === rutineId);
-        return rutine ? rutine.name : "Sin rutina asignada";
-    };
-
-    // --- FUNCIONES DE ASIGNACIÓN SIMPLE ---
-    const handleAssignRutine = (user) => {
-        setSelectedUser(user);
-        setShowAssignModal(true);
-    };
-
-    const assignRutine = (rutineId) => {
-        if (selectedUser) {
-            setUsersData(prevUsers =>
-                prevUsers.map(user =>
-                    user.id === selectedUser.id ? { ...user, currentRutineId: rutineId } : user
-                )
-            );
-            setShowAssignModal(false);
-            setSelectedUser(null);
-        }
-    };
-
-    // --- FUNCIONES DE RUTINA PERSONALIZADA ---
     const addExerciseToList = () => {
         if (!selectedExercise || !series || !reps || !weight) {
-            alert("Por favor completa todos los campos del ejercicio.");
+            alert("Completa todos los campos del ejercicio.");
             return;
         }
-
         const exerciseDetails = ejerciciosDB.find(e => e.id === parseInt(selectedExercise));
-        
         const newExercise = {
-            id: Date.now(), // ID temporal para la lista
-            exerciseId: exerciseDetails.id,
+            id: Date.now(),
             name: exerciseDetails.name,
-            series: series,
-            reps: reps,
-            weight: weight
+            series: parseInt(series),
+            reps: parseInt(reps),
+            weight: parseFloat(weight)
         };
-
         setRoutineExercises([...routineExercises, newExercise]);
-        
-        // Limpiamos los inputs del ejercicio para añadir el siguiente
-        setSelectedExercise("");
-        setSeries("");
-        setReps("");
-        setWeight("");
+        setSelectedExercise(""); setSeries(""); setReps(""); setWeight("");
     };
 
-    const removeExerciseFromList = (idToRemove) => {
-        setRoutineExercises(routineExercises.filter(ex => ex.id !== idToRemove));
-    };
-
-    const handleSaveCustomRoutine = () => {
+    // 3. FUNCIÓN PARA GUARDAR EN POSTGRESQL (Conectada al servidor)
+    const handleSaveCustomRoutine = async () => {
         if (!targetClient || !newRutineName || routineExercises.length === 0) {
-            alert("Falta información: Selecciona un cliente, un nombre de rutina y al menos 1 ejercicio.");
+            alert("Falta información clave.");
             return;
         }
 
-        // 1. Crear la nueva rutina
-        const newRutineId = rutinesData.length > 0 ? Math.max(...rutinesData.map(r => r.id)) + 1 : 1;
-        const rutineToAdd = {
-            id: newRutineId,
-            name: newRutineName,
-            exercises: routineExercises
-        };
+        try {
+            const response = await fetch("http://localhost:3000/assign-routine", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    userId: targetClient,
+                    routineName: newRutineName,
+                    exercises: routineExercises // Mandamos el array que armaste
+                }),
+            });
 
-        // 2. Guardarla en la "base de datos" local de rutinas
-        setRutinesData([...rutinesData, rutineToAdd]);
-
-        // 3. Asignársela automáticamente al cliente seleccionado
-        setUsersData(prevUsers =>
-            prevUsers.map(user =>
-                user.id === parseInt(targetClient) ? { ...user, currentRutineId: newRutineId } : user
-            )
-        );
-
-        // 4. Cerrar y limpiar todo
-        setShowCreateModal(false);
-        setTargetClient("");
-        setNewRutineName("");
-        setRoutineExercises([]);
+            if (response.ok) {
+                alert("¡Rutina guardada en la base de datos con éxito!");
+                setShowCreateModal(false);
+                setRoutineExercises([]);
+                setNewRutineName("");
+            }
+        } catch (error) {
+            console.error("Error al guardar:", error);
+            alert("Error al conectar con el servidor.");
+        }
     };
+
+    if (user?.role !== 'pf') {
+        return <p className={styles.errorMsg}>No tienes permiso para acceder. Solo nivel Profe.</p>;
+    }
 
     return (
         <div className={styles.adminContainer}>
             <div className={styles.header}>
-                <h1>Panel de Administración: Clientes</h1>
-                <button 
-                    className={styles.btnCreate} 
-                    onClick={() => setShowCreateModal(true)}
-                >
+                <h1>Panel Profe: {user.name}</h1>
+                <button className={styles.btnCreate} onClick={() => setShowCreateModal(true)}>
                     + Crear Rutina Personalizada
                 </button>
             </div>
-            
+
             <div className={styles.searchBar}>
-                <input 
-                    type="text" 
-                    placeholder="Buscar por nombre o email..." 
+                <input
+                    type="text"
+                    placeholder="Buscar alumno..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
             </div>
 
-            <table className={styles.clientsTable}>
-                {/* ... (Tu tabla intacta) ... */}
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nombre</th>
-                        <th>Email</th>
-                        <th>Rutina Actual</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {filteredUsers.map(user => (
-                        <tr key={user.id}>
-                            <td>{user.id}</td>
-                            <td>{user.name}</td>
-                            <td>{user.email}</td>
-                            <td>{getRutineName(user.currentRutineId)}</td>
-                            <td>
-                                <button className={styles.btnEdit}>Ver Perfil</button>
-                                <button className={styles.btnAssign} onClick={() => handleAssignRutine(user)}>Asignar Existente</button>
-                            </td>
+            {loading ? <p>Cargando alumnos...</p> : (
+                <table className={styles.clientsTable}>
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Email</th>
+                            <th>Acciones</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
-
-            {/* MODAL 1: Asignar rutina existente */}
-            {showAssignModal && selectedUser && (
-                <div className={styles.modal}>
-                    {/* ... (Tu modal 1 intacto) ... */}
-                    <div className={styles.modalContent}>
-                        <h2>Asignar Rutina a {selectedUser.name}</h2>
-                        <select onChange={(e) => assignRutine(parseInt(e.target.value))}>
-                            <option value="">Seleccionar rutina...</option>
-                            {rutinesData.map(rutine => (
-                                <option key={rutine.id} value={rutine.id}>{rutine.name}</option>
-                            ))}
-                        </select>
-                        <div className={styles.modalActions}>
-                            <button className={styles.btnCancel} onClick={() => setShowAssignModal(false)}>Cancelar</button>
-                        </div>
-                    </div>
-                </div>
+                    </thead>
+                    <tbody>
+                        {filteredUsers.map(u => (
+                            <tr key={u.id}>
+                                <td>{u.name}</td>
+                                <td>{u.email}</td>
+                                <td>
+                                    <button className={styles.btnAssign}>Ver Progreso</button>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
             )}
 
-            {/* MODAL 2: Crear rutina personalizada */}
+            {/* MODAL CONSTRUCTOR */}
             {showCreateModal && (
                 <div className={styles.modalCustom}>
                     <div className={styles.modalContentLarge}>
-                        <h2>Constructor de Rutina</h2>
-                        
-                        <div className={styles.formRow}>
-                            <div className={styles.formGroup}>
-                                <label>1. Seleccionar Cliente:</label>
-                                <select value={targetClient} onChange={(e) => setTargetClient(e.target.value)}>
-                                    <option value="">Elegir cliente...</option>
-                                    {usersData.map(user => (
-                                        <option key={user.id} value={user.id}>{user.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div className={styles.formGroup}>
-                                <label>2. Nombre de la Rutina:</label>
-                                <input 
-                                    type="text" 
-                                    placeholder="Ej: Fuerza Máxima Sem 1" 
-                                    value={newRutineName}
-                                    onChange={(e) => setNewRutineName(e.target.value)}
-                                />
-                            </div>
-                        </div>
+                        <h2>Nueva Rutina para Alumno</h2>
+                        <label>Seleccionar Alumno:</label>
+                        <select value={targetClient} onChange={(e) => setTargetClient(e.target.value)}>
+                            <option value="">Elegir...</option>
+                            {usersData.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+                        </select>
 
-                        <hr className={styles.divider} />
-                        
-                        <h3>3. Agregar Ejercicios</h3>
+                        <input 
+                            type="text" 
+                            placeholder="Nombre de la rutina (ej: Empuje Lunes)" 
+                            value={newRutineName}
+                            onChange={(e) => setNewRutineName(e.target.value)}
+                        />
+
                         <div className={styles.exerciseAdder}>
                             <select value={selectedExercise} onChange={(e) => setSelectedExercise(e.target.value)}>
-                                <option value="">Seleccionar Ejercicio...</option>
-                                {ejerciciosDB.map(ej => (
-                                    <option key={ej.id} value={ej.id}>{ej.name} ({ej.muscle})</option>
-                                ))}
+                                <option value="">Ejercicio...</option>
+                                {ejerciciosDB.map(ej => <option key={ej.id} value={ej.id}>{ej.name}</option>)}
                             </select>
-                            
-                            <input type="number" placeholder="Series" value={series} onChange={(e) => setSeries(e.target.value)} min="1"/>
-                            <input type="number" placeholder="Reps" value={reps} onChange={(e) => setReps(e.target.value)} min="1"/>
-                            <input type="number" placeholder="Peso (kg)" value={weight} onChange={(e) => setWeight(e.target.value)} min="0"/>
-                            
-                            <button className={styles.btnAddExercise} onClick={addExerciseToList}>+ Añadir</button>
+                            <input type="number" placeholder="S" value={series} onChange={(e) => setSeries(e.target.value)} />
+                            <input type="number" placeholder="R" value={reps} onChange={(e) => setReps(e.target.value)} />
+                            <input type="number" placeholder="Kg" value={weight} onChange={(e) => setWeight(e.target.value)} />
+                            <button onClick={addExerciseToList}>Añadir</button>
                         </div>
 
-                        {/* Lista visual de ejercicios agregados */}
-                        {routineExercises.length > 0 && (
-                            <ul className={styles.exerciseList}>
-                                {routineExercises.map((ex) => (
-                                    <li key={ex.id}>
-                                        <span><strong>{ex.name}</strong> - {ex.series} series x {ex.reps} reps ({ex.weight} kg)</span>
-                                        <button className={styles.btnRemove} onClick={() => removeExerciseFromList(ex.id)}>X</button>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
+                        <ul className={styles.exerciseList}>
+                            {routineExercises.map((ex) => (
+                                <li key={ex.id}>{ex.name} - {ex.series}x{ex.reps} ({ex.weight}kg)</li>
+                            ))}
+                        </ul>
 
                         <div className={styles.modalActions}>
-                            <button className={styles.btnCancel} onClick={() => setShowCreateModal(false)}>Cancelar</button>
-                            <button className={styles.btnSave} onClick={handleSaveCustomRoutine}>Guardar y Asignar</button>
+                            <button onClick={() => setShowCreateModal(false)}>Cerrar</button>
+                            <button className={styles.btnSave} onClick={handleSaveCustomRoutine}>Guardar en DB</button>
                         </div>
                     </div>
                 </div>

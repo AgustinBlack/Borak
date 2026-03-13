@@ -149,8 +149,8 @@
 
 import { useState } from "react";
 
-function Login() {
-
+// Agregamos { onLogin } como prop para poder avisarle a App.jsx que entramos
+function Login({ onLogin }) { 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -158,67 +158,52 @@ function Login() {
     e.preventDefault();
 
     try {
-
       const response = await fetch("http://localhost:3000/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-          email,
-          password
-        })
+        body: JSON.stringify({ email, password })
       });
 
       const data = await response.json();
 
       if (response.ok) {
-
-        // guardamos usuario en localStorage
+        // 1. Guardamos en el motor del navegador
         localStorage.setItem("user", JSON.stringify(data));
 
-        alert("Login exitoso");
+        // 2. ¡ESTA ES LA LLAVE! Avisamos al estado global de la App
+        onLogin(data); 
 
+        alert("¡Bienvenido a BORAK!");
       } else {
-
-        alert(data.message);
-
+        alert(data.message || "Credenciales incorrectas");
       }
-
     } catch (error) {
-
       console.error(error);
-      alert("Error en el login");
-
+      alert("Error de conexión con el servidor");
     }
   };
 
   return (
-
     <form onSubmit={handleLogin}>
-
       <input
         type="email"
         placeholder="Email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
+        required
       />
-
       <input
         type="password"
         placeholder="Password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
+        required
       />
-
-      <button type="submit">
-        Login
-      </button>
-
+      <button type="submit">Login</button>
     </form>
-
   );
-
 }
 
 export default Login;

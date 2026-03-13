@@ -1,89 +1,56 @@
-import { useState } from "react"
-import exercises from "../../data/exercises.json"
-import rutineExercises from "../../data/rutineExercises.json"
-import rutines from "../../data/rutines.json"
-import workoutSessions from "../../data/workoutSessions.json"
-import WorkoutCalendar from "../CalendarWorkout/CalendarWorkout"
-import styles from "./Rutine.module.css"
+import { useState, useEffect } from "react"; // Agregamos useEffect
+import workoutSessions from "../../data/workoutSessions.json";
+import WorkoutCalendar from "../CalendarWorkout/CalendarWorkout";
+import styles from "./Rutine.module.css";
 
 const Rutine = ({ user }) => {
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [exerciseLogs, setExerciseLogs] = useState({});
+  
+  // --- NUEVOS ESTADOS PARA LOS DATOS DE POSTGRES ---
+  const [routineData, setRoutineData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const [selectedDate, setSelectedDate] = useState(new Date())
-
-  const [exerciseLogs, setExerciseLogs] = useState({})
-
-  const handleInputChange = (exerciseId, setNumber, field, value) => {
-
-    setExerciseLogs(prev => {
-
-      const updated = { ...prev }
-
-      if (!updated[exerciseId]) {
-        updated[exerciseId] = {}
+  // --- PETICIÓN AL BACKEND ---
+  useEffect(() => {
+    const fetchRoutine = async () => {
+      try {
+        // Usamos el ID del usuario que viene por props
+        const response = await fetch(`http://localhost:3000/routine/${user.id}`);
+        const data = await response.json();
+        
+        if (response.ok) {
+          setRoutineData(data);
+        }
+      } catch (error) {
+        console.error("Error al traer la rutina:", error);
+      } finally {
+        setLoading(false);
       }
+    };
 
-      if (!updated[exerciseId][setNumber]) {
-        updated[exerciseId][setNumber] = {}
+    if (user?.id) fetchRoutine();
+  }, [user]);
+
+  const handleInputChange = (exerciseName, setNumber, field, value) => {
+    setExerciseLogs(prev => ({
+      ...prev,
+      [exerciseName]: {
+        ...prev[exerciseName],
+        [setNumber]: { ...prev[exerciseName]?.[setNumber], [field]: value }
       }
+    }));
+  };
 
-      updated[exerciseId][setNumber][field] = value
+  if (loading) return <p>Cargando tu entrenamiento...</p>;
+  if (routineData.length === 0) return <p>No tienes una rutina asignada aún.</p>;
 
-      return updated
-
-    })
-
-  }
-
-  const handleVerVideo = (url) => {
-    if (url) window.open(url, "_blank")
-  }
-
-  // Rutina del usuario
-  const rutine = rutines.find(r => r.id === 1)
-
-  const rutineExerciseList = rutineExercises.filter(
-    (ex) => ex.rutineId === rutine.id
-  )
-
-  // Agrupar por día
-  const days = {}
-
-  rutineExerciseList.forEach((ex) => {
-
-    if (!days[ex.day]) {
-      days[ex.day] = []
-    }
-
-    const exerciseInfo = exercises.find(
-      e => e.id === ex.exerciseId
-    )
-
-    days[ex.day].push({
-      ...ex,
-      exercise: exerciseInfo
-    })
-
-  })
-
-  const trainingSchedule = {
-    1: 1,
-    3: 2,
-    5: 3
-  }
-
-  const selectedDay = selectedDate.getDay()
-
-  const rutineDay = trainingSchedule[selectedDay]
-
-  const selectedExercises = rutineDay
-    ? days[rutineDay] || []
-    : []
+  // Nombre de la rutina (tomado del primer ejercicio que devuelve el JOIN)
+  const routineName = routineData[0]?.routine_name || "Mi Rutina";
 
   return (
-
     <>
-
-      <h2>{rutine.name}</h2>
+      <h2>{routineName}</h2>
 
       <WorkoutCalendar
         workoutSessions={workoutSessions}
@@ -91,117 +58,42 @@ const Rutine = ({ user }) => {
       />
 
       <div style={{ marginTop: "40px" }}>
+        <h2>Rutina del día {selectedDate.toLocaleDateString()}</h2>
 
-        <h2>
-          Rutina del día {selectedDate.toLocaleDateString()}
-        </h2>
+        <div className={styles.ejercicios}>
+          {routineData.map((ex, index) => (
+            <div key={index} className={styles.ejercicio}>
+              <h3>{ex.exercise_name}</h3>
+              <p>Objetivo: {ex.series} sets x {ex.reps} reps</p>
+              <p>Peso sugerido: {ex.weight_kg} kg</p>
 
-        {rutineDay ? (
-
-          <div className={styles.ejercicios}>
-
-            <h3>Día {rutineDay}</h3>
-
-            {selectedExercises.map((ex) => (
-
-              <div
-                key={ex.id}
-                className={styles.ejercicio}
-              >
-
-                <h3>{ex.exercise.name}</h3>
-
-                <p>
-                  {ex.sets} sets x {ex.reps}
-                </p>
-
-                <p>
-                  Descanso: {ex.rest} segundos
-                </p>
-
-                <img
-                  src={ex.exercise.image}
-                  alt={ex.exercise.name}
-                  width="150"
-                />
-
-                <button
-                  onClick={() =>
-                    handleVerVideo(ex.exercise.videoUrl)
-                  }
-                >
-                  Ver video
-                </button>
-
-                {/* INPUTS PARA REGISTRAR ENTRENAMIENTO */}
-
-                <div className={styles.logContainer}>
-
-                  <h4>Registrar entrenamiento</h4>
-
-                  {[...Array(ex.sets)].map((_, index) => {
-
-                    const setNumber = index + 1
-
-                    return (
-
-                      <div
-                        key={setNumber}
-                        className={styles.setRow}
-                      >
-
-                        <span>Set {setNumber}</span>
-
-                        <input
-                          type="number"
-                          placeholder="Reps"
-                          onChange={(e) =>
-                            handleInputChange(
-                              ex.id,
-                              setNumber,
-                              "reps",
-                              e.target.value
-                            )
-                          }
-                        />
-
-                        <input
-                          type="number"
-                          placeholder="Peso (kg)"
-                          onChange={(e) =>
-                            handleInputChange(
-                              ex.id,
-                              setNumber,
-                              "weight",
-                              e.target.value
-                            )
-                          }
-                        />
-
-                      </div>
-
-                    )
-
-                  })}
-
-                </div>
-
+              <div className={styles.logContainer}>
+                <h4>Registrar hoy</h4>
+                {[...Array(ex.series)].map((_, i) => {
+                  const setNumber = i + 1;
+                  return (
+                    <div key={setNumber} className={styles.setRow}>
+                      <span>Set {setNumber}</span>
+                      <input
+                        type="number"
+                        placeholder="Reps reales"
+                        onChange={(e) => handleInputChange(ex.exercise_name, setNumber, "reps", e.target.value)}
+                      />
+                      <input
+                        type="number"
+                        placeholder="Peso usado"
+                        onChange={(e) => handleInputChange(ex.exercise_name, setNumber, "weight", e.target.value)}
+                      />
+                    </div>
+                  );
+                })}
               </div>
-
-            ))}
-
-          </div>
-
-        ) : (
-
-          <p>Hoy es día de descanso</p>
-
-        )}
-
+            </div>
+          ))}
+        </div>
       </div>
-
     </>
-  )
-}
+  );
+};
 
-export default Rutine
+export default Rutine;
