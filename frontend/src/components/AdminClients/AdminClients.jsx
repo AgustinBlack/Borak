@@ -75,6 +75,12 @@ const AdminClients = ({ user }) => {
             return;
         }
 
+        console.log({
+            userId: targetClient,
+            routineName: newRutineName,
+            exercises: routineExercises
+        })
+
         try {
             const response = await fetch("http://localhost:3000/assign-routine", {
                 method: "POST",
@@ -130,27 +136,27 @@ const AdminClients = ({ user }) => {
                         </tr>
                     </thead>
                     <tbody>
-                       {/* Cambia esta parte en tu <tbody> */}
-{filteredUsers.map(u => (
-    <tr key={u.id}>
-        <td>{u.name}</td>
-        <td>{u.email}</td>
-        <td>
-            {/* 1. Botón para abrir el constructor con este alumno ya elegido */}
-            <button 
-                className={styles.btnAssign} 
-                onClick={() => {
-                    setTargetClient(u.id); // Selecciona al alumno automáticamente
-                    setShowCreateModal(true); // Abre el modal
-                }}
-            >
-                Asignar Rutina
-            </button>
-            
-            <button className={styles.btnEdit}>Ver Progreso</button>
-        </td>
-    </tr>
-))}
+                        {/* Cambia esta parte en tu <tbody> */}
+                        {filteredUsers.map(u => (
+                            <tr key={u.id}>
+                                <td>{u.name}</td>
+                                <td>{u.email}</td>
+                                <td>
+                                    {/* 1. Botón para abrir el constructor con este alumno ya elegido */}
+                                    <button
+                                        className={styles.btnAssign}
+                                        onClick={() => {
+                                            setTargetClient(u.id); // Selecciona al alumno automáticamente
+                                            setShowCreateModal(true); // Abre el modal
+                                        }}
+                                    >
+                                        Asignar Rutina
+                                    </button>
+
+                                    <button className={styles.btnEdit}>Ver Progreso</button>
+                                </td>
+                            </tr>
+                        ))}
                     </tbody>
                 </table>
             )}
@@ -166,9 +172,9 @@ const AdminClients = ({ user }) => {
                             {usersData.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
                         </select>
 
-                        <input 
-                            type="text" 
-                            placeholder="Nombre de la rutina (ej: Empuje Lunes)" 
+                        <input
+                            type="text"
+                            placeholder="Nombre de la rutina (ej: Empuje Lunes)"
                             value={newRutineName}
                             onChange={(e) => setNewRutineName(e.target.value)}
                         />

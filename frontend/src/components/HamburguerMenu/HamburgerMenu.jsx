@@ -4,6 +4,7 @@ import clases from "./Hamburger.module.css";
 
 export default function HamburgerMenu() {
   const [open, setOpen] = useState(false);
+  const [user, setUser] = useState(null);
 
   const handleLogout = () => {
 
