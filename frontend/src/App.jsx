@@ -27,17 +27,18 @@ function App() {
     setUser(null);
   };
 
-  // SI NO ESTA LOGUEADO
   if (!user) {
     return <Auth onLogin={setUser} />;
   }
 
-  // Definimos si es profe antes del return principal
   const isAdmin = user?.role === 'pf';
 
   return (
     <BrowserRouter>
-      {/* Pasamos el isAdmin al Nav para que el menú sepa qué mostrar */}
+      {/* 1. El Nav ya recibe todo lo necesario. 
+          Asegúrate de que dentro de Nav.jsx estés pasando estas props 
+          al componente <HamburgerMenu /> 
+      */}
       <Nav user={user} logout={handleLogout} isAdmin={isAdmin} />
 
       <Routes>
@@ -45,7 +46,8 @@ function App() {
         
         <Route path="/seccion/Rutina" element={<Rutine user={user} />} />
         
-        <Route path="/seccion/Objetivos" element={<Objetives />} />
+        {/* 2. CAMBIO AQUÍ: Pasamos el user a Objetives */}
+        <Route path="/seccion/Objetivos" element={<Objetives user={user} />} />
         
         <Route path='/seccion/Progresos' element={<Progress user={user} />} />
         
@@ -53,7 +55,6 @@ function App() {
         
         <Route path="/seccion/Us" element={<Us />} />
 
-        {/* PROTECCIÓN DE RUTA: Si no es admin, lo manda a la Home */}
         <Route
           path="/seccion/AdministrarPerfiles"
           element={isAdmin ? <AdminClients user={user} /> : <Navigate to="/" />}
