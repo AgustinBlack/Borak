@@ -1,36 +1,55 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import styles from './Profile.module.css';
 
-const Profile = () => {
-  // Datos del cliente - puedes reemplazar con datos de tu base de datos
-  const [profile, setProfile] = useState({
-    nombre: 'Adrés',
-    apellido: 'Di Silvio',
-    email: 'tutujr@example.com',
-    peso: 75,
-    altura: 180,
-    objetivos: [
-      'Ganar masa muscular',
-      'Mejorar resistencia',
-      'Reducir porcentaje de grasa'
-    ],
-    avatar: 'https://via.placeholder.com/150?text=JG'
-  });
+const Profile = ({ user }) => {
 
+  const [profile, setProfile] = useState(null);
+  const [formData, setFormData] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState(profile);
+
+  useEffect(() => {
+
+    const fetchProfile = async () => {
+
+      try {
+
+        const res = await fetch(`http://localhost:3000/profile/${user.id}`);
+        const data = await res.json();
+
+        setProfile(data);
+        setFormData(data);
+
+      } catch (error) {
+        console.error("Error cargando perfil:", error);
+      }
+
+    };
+
+    if (user?.id) {
+      fetchProfile();
+    }
+
+  }, [user]);
+
+  if (!profile) {
+    return <p>Cargando perfil...</p>;
+  }
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+
     setFormData({
       ...formData,
-      [name]: name === 'peso' || name === 'altura' ? parseFloat(value) : value
+      [name]: name === 'peso' || name === 'altura'
+        ? parseFloat(value)
+        : value
     });
   };
 
   const handleObjetivoChange = (index, value) => {
     const updatedObjetivos = [...formData.objetivos];
     updatedObjetivos[index] = value;
+
     setFormData({
       ...formData,
       objetivos: updatedObjetivos
@@ -46,6 +65,7 @@ const Profile = () => {
 
   const handleRemoveObjetivo = (index) => {
     const updatedObjetivos = formData.objetivos.filter((_, i) => i !== index);
+
     setFormData({
       ...formData,
       objetivos: updatedObjetivos
@@ -70,17 +90,20 @@ const Profile = () => {
   return (
     <div className={styles.profileContainer}>
       <div className={styles.profileCard}>
-        {/* Header del Perfil */}
+
+        {/* Header */}
         <div className={styles.profileHeader}>
           <img 
             src={profile.avatar} 
             alt="Avatar del usuario" 
             className={styles.avatar}
           />
+
           <div className={styles.headerInfo}>
             <h1>{profile.nombre} {profile.apellido}</h1>
             <p>{profile.email}</p>
           </div>
+
           <button 
             className={styles.editBtn}
             onClick={() => {
@@ -92,11 +115,13 @@ const Profile = () => {
           </button>
         </div>
 
-        {/* Contenido principal */}
+        {/* Contenido */}
         <div className={styles.profileContent}>
           {isEditing ? (
-            // Modo edición
+
+            // MODO EDICIÓN
             <form className={styles.editForm}>
+
               <div className={styles.formGroup}>
                 <label>Nombre</label>
                 <input
@@ -106,6 +131,7 @@ const Profile = () => {
                   onChange={handleInputChange}
                 />
               </div>
+
               <div className={styles.formGroup}>
                 <label>Apellido</label>
                 <input
@@ -115,6 +141,7 @@ const Profile = () => {
                   onChange={handleInputChange}
                 />
               </div>
+
               <div className={styles.formGroup}>
                 <label>Email</label>
                 <input
@@ -124,6 +151,7 @@ const Profile = () => {
                   onChange={handleInputChange}
                 />
               </div>
+
               <div className={styles.formRow}>
                 <div className={styles.formGroup}>
                   <label>Peso (kg)</label>
@@ -135,6 +163,7 @@ const Profile = () => {
                     step="0.1"
                   />
                 </div>
+
                 <div className={styles.formGroup}>
                   <label>Altura (cm)</label>
                   <input
@@ -149,15 +178,18 @@ const Profile = () => {
 
               <div className={styles.formGroup}>
                 <label>Objetivos</label>
+
                 <div className={styles.objetivosList}>
                   {formData.objetivos.map((objetivo, index) => (
                     <div key={index} className={styles.objetivoInput}>
+
                       <input
                         type="text"
                         value={objetivo}
                         onChange={(e) => handleObjetivoChange(index, e.target.value)}
                         placeholder={`Objetivo ${index + 1}`}
                       />
+
                       {formData.objetivos.length > 1 && (
                         <button
                           type="button"
@@ -167,9 +199,11 @@ const Profile = () => {
                           ✕
                         </button>
                       )}
+
                     </div>
                   ))}
                 </div>
+
                 <button 
                   type="button"
                   className={styles.addObjetivoBtn}
@@ -187,6 +221,7 @@ const Profile = () => {
                 >
                   Guardar cambios
                 </button>
+
                 <button
                   type="button"
                   className={styles.cancelBtn}
@@ -195,21 +230,27 @@ const Profile = () => {
                   Cancelar
                 </button>
               </div>
+
             </form>
+
           ) : (
-            // Modo visualización
+
+            // MODO VISUALIZACIÓN
             <>
               <div className={styles.infoSection}>
                 <h2>Información Personal</h2>
+
                 <div className={styles.infoGrid}>
                   <div className={styles.infoCard}>
                     <span className={styles.label}>Peso</span>
                     <p className={styles.value}>{profile.peso} kg</p>
                   </div>
+
                   <div className={styles.infoCard}>
                     <span className={styles.label}>Altura</span>
                     <p className={styles.value}>{profile.altura} cm</p>
                   </div>
+
                   <div className={styles.infoCard}>
                     <span className={styles.label}>IMC</span>
                     <p className={styles.value}>{calculateIMC()}</p>
@@ -219,6 +260,7 @@ const Profile = () => {
 
               <div className={styles.objetivosSection}>
                 <h2>Tus Objetivos</h2>
+
                 <ul className={styles.objetivosList}>
                   {profile.objetivos.map((objetivo, index) => (
                     <li key={index} className={styles.objetivoItem}>

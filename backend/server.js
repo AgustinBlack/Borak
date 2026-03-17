@@ -199,6 +199,56 @@ app.post("/assign-routine", async (req, res) => {
 });
 
 
+// MUESTRA EN LA SECCION DE PERFIL, EL MISMO DEL USUARIO QUE INCIO SESION
+
+app.get("/profile/:userId", async (req, res) => {
+
+  const { userId } = req.params;
+
+  try {
+
+    const result = await pool.query(
+      `
+      SELECT id, name, email
+      FROM users
+      WHERE id = $1
+      `,
+      [userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Usuario no encontrado" });
+    }
+
+    const user = result.rows[0];
+
+    // Armamos el perfil (por ahora con datos básicos + mock de fitness)
+    const profile = {
+      id: user.id,
+      nombre: user.name,
+      apellido: "", // después lo podés separar si querés
+      email: user.email,
+      peso: 75,
+      altura: 180,
+      objetivos: [
+        "Ganar masa muscular",
+        "Mejorar resistencia"
+      ],
+      avatar: `https://ui-avatars.com/api/?name=${user.name}`
+    };
+
+    res.json(profile);
+
+  } catch (error) {
+
+    console.error("Error obteniendo perfil:", error);
+    res.status(500).json({ error: "Error del servidor" });
+
+  }
+
+});
+
+
 // SIEMPRE AL FINAL: Iniciar servidor
 app.listen(3000, () => {
   console.log("Servidor corriendo en puerto 3000");
