@@ -29,6 +29,8 @@ const AdminClients = ({ user }) => {
     const [reps, setReps] = useState("");
     const [weight, setWeight] = useState("");
 
+    const [selectedRoutineUser, setSelectedRoutineUser] = useState(null); // para editar rutina seleccionada
+
     // 2. CARGAR CLIENTES REALES DE LA DB
     useEffect(() => {
         const fetchUsers = async () => {
@@ -105,6 +107,37 @@ const AdminClients = ({ user }) => {
         }
     };
 
+    const handleOpenEditRoutine = (client) => {
+        setSelectedRoutineUser(client);
+        setTargetClient(client.id);
+        setNewRutineName(client.routineName || "");
+        setRoutineExercises(client.routineExercises || []);
+        setShowCreateModal(true);
+    };
+
+    const handleDeleteRoutine = async (clientId) => {
+        if (!window.confirm("¿Eliminar rutina de este cliente?")) return;
+
+        try {
+            const response = await fetch(`http://localhost:3000/users/${clientId}/routine`, {
+                method: "DELETE",
+            });
+            if (response.ok) {
+                setUsersData(prev => prev.map(u =>
+                    u.id === clientId
+                        ? { ...u, routineName: null, routineExercises: [] }
+                        : u
+                ));
+                alert("Rutina eliminada");
+            } else {
+                throw new Error("Error en servidor");
+            }
+        } catch (error) {
+            console.error(error);
+            alert("No se pudo eliminar la rutina");
+        }
+    };
+
     if (user?.role !== 'pf') {
         return <p className={styles.errorMsg}>No tienes permiso para acceder. Solo nivel Profe.</p>;
     }
@@ -133,6 +166,7 @@ const AdminClients = ({ user }) => {
                         <tr>
                             <th>Nombre</th>
                             <th>Email</th>
+                            <th>Rutina</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -142,6 +176,7 @@ const AdminClients = ({ user }) => {
                             <tr key={u.id}>
                                 <td>{u.name}</td>
                                 <td>{u.email}</td>
+                                <td>{u.routineName || "Sin rutina"}</td>
                                 <td>
                                     {/* 1. Botón para abrir el constructor con este alumno ya elegido */}
                                     <button
@@ -154,7 +189,21 @@ const AdminClients = ({ user }) => {
                                         Asignar Rutina
                                     </button>
 
-                                    <button className={styles.btnEdit}>Ver Progreso</button>
+                                    <button
+                                        className={styles.btnEdit}
+                                        onClick={() => handleOpenEditRoutine(u)}
+                                        disabled={!u.routineName}
+                                    >
+                                        Modificar Rutina
+                                    </button>
+
+                                    <button
+                                        className={styles.btnDelete}
+                                        onClick={() => handleDeleteRoutine(u.id)}
+                                        disabled={!u.routineName}
+                                    >
+                                        Eliminar Rutina
+                                    </button>
                                 </td>
                             </tr>
                         ))}

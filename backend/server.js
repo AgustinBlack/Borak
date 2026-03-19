@@ -178,6 +178,38 @@ app.post("/assign-routine", async (req, res) => {
   }
 });
 
+/* ================================
+   ENDPOINT: GUARDAR RUTINA COMPLETADA (PROGRESO)
+   ================================ */
+app.post("/routine-completed", async (req, res) => {
+  const { userId, routineName, exercises } = req.body;
+
+  try {
+    if (!userId || !routineName || !Array.isArray(exercises) || exercises.length === 0) {
+      return res.status(400).json({ message: "Datos incompletos para guardar rutina" });
+    }
+
+    const routineResult = await pool.query(
+      "INSERT INTO routines (user_id, name) VALUES ($1, $2) RETURNING id",
+      [userId, routineName]
+    );
+
+    const routineId = routineResult.rows[0].id;
+
+    for (const ex of exercises) {
+      await pool.query(
+        "INSERT INTO routine_exercises (routine_id, exercise_name, series, reps, weight_kg) VALUES ($1, $2, $3, $4, $5)",
+        [routineId, ex.exercise_name, ex.series, ex.reps, ex.weight_kg]
+      );
+    }
+
+    res.json({ message: "Rutina completada guardada", routineId });
+  } catch (error) {
+    console.error("ERROR GUARDANDO RUTINA COMPLETADA:", error);
+    res.status(500).send("Error al guardar rutina completada");
+  }
+});
+
 
 // MUESTRA EN LA SECCION DE PERFIL, EL MISMO DEL USUARIO QUE INCIO SESION
 
