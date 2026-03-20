@@ -77,25 +77,52 @@ app.get("/routine/:userId", async (req, res) => {
   const { userId } = req.params;
 
   try {
-    const result = await pool.query(
-      `
-      SELECT * FROM routines
-      WHERE user_id = $1
-      ORDER BY id DESC
-      LIMIT 1
-      `,
+    const routineRes = await pool.query(
+      `SELECT * FROM routines
+       WHERE user_id = $1
+       ORDER BY id DESC
+       LIMIT 1`,
       [userId]
     );
 
-    if (result.rows.length === 0) {
+    if (routineRes.rows.length === 0) {
       return res.status(404).json({ message: "No hay rutina" });
     }
 
-    res.json(result.rows[0]); // 👈 DEVUELVE days
+    const routine = routineRes.rows[0];
 
-  } catch (error) {
-    console.error("ERROR AL OBTENER RUTINA:", error);
-    res.status(500).send("Error al obtener la rutina");
+    const daysRes = await pool.query(
+      `SELECT * FROM routine_days WHERE routine_id = $1`,
+      [routine.id]
+    );
+
+    const days = [];
+
+    for (const day of daysRes.rows) {
+      const exRes = await pool.query(
+        `SELECT * FROM routine_exercises WHERE day_id = $1`,
+        [day.id]
+      );
+
+      days.push({
+        name: day.name,
+        exercises: exRes.rows.map(ex => ({
+          name: ex.exercise_name,
+          series: ex.series,
+          reps: ex.reps,
+          weight: ex.weight_kg
+        }))
+      });
+    }
+
+    res.json({
+      ...routine,
+      days
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error al obtener rutina" });
   }
 });
 
@@ -106,21 +133,46 @@ app.post("/assign-routine", async (req, res) => {
   const { userId, routineName, days } = req.body;
 
   try {
-    const result = await pool.query(
-      `
-      INSERT INTO routines (user_id, name, days)
-      VALUES ($1, $2, $3)
-      RETURNING *
-      `,
-      [userId, routineName, JSON.stringify(days)]
+    // 1. Crear rutina
+    const routineResult = await pool.query(
+      `INSERT INTO routines (user_id, name)
+       VALUES ($1, $2)
+       RETURNING id`,
+      [userId, routineName]
     );
 
-    res.json(result.rows[0]);
+    const routineId = routineResult.rows[0].id;
+
+    // 2. Crear días y ejercicios
+    for (const day of days) {
+      const dayResult = await pool.query(
+        `INSERT INTO routine_days (routine_id, name)
+         VALUES ($1, $2)
+         RETURNING id`,
+        [routineId, day.name]
+      );
+
+      const dayId = dayResult.rows[0].id;
+
+      for (const ex of day.exercises) {
+        await pool.query(
+          `INSERT INTO routine_exercises 
+           (day_id, exercise_name, series, reps, weight_kg)
+           VALUES ($1, $2, $3, $4, $5)`,
+          [dayId, ex.name, ex.series, ex.reps, ex.weight]
+        );
+        console.log("DAY:", day);
+console.log("EXERCISES:", day.exercises);
+      }
+    }
+
+    res.json({ message: "Rutina creada correctamente" });
 
   } catch (err) {
     console.error("ERROR GUARDANDO RUTINA:", err);
-    res.status(500).json({ error: "Error al guardar rutina" });
+    res.status(500).json({ error: err.message });
   }
+  console.log(days)
 });
 
 /* ================================
@@ -128,23 +180,48 @@ app.post("/assign-routine", async (req, res) => {
 ================================ */
 app.put("/update-routine/:userId", async (req, res) => {
   const { userId } = req.params;
-  const { exercises } = req.body;
+  const { days } = req.body;
 
   try {
-    await pool.query(
-      `
-      UPDATE routines
-      SET days = $1
-      WHERE user_id = $2
-      `,
-      [JSON.stringify(days), userId]
+    const routineRes = await pool.query(
+      `SELECT id FROM routines
+       WHERE user_id = $1
+       ORDER BY id DESC
+       LIMIT 1`,
+      [userId]
     );
+
+    const routineId = routineRes.rows[0].id;
+
+    // BORRAR TODO
+    await pool.query(`DELETE FROM routine_days WHERE routine_id = $1`, [routineId]);
+
+    // RECREAR
+    for (const day of days) {
+      const dayResult = await pool.query(
+        `INSERT INTO routine_days (routine_id, name)
+         VALUES ($1, $2)
+         RETURNING id`,
+        [routineId, day.name]
+      );
+
+      const dayId = dayResult.rows[0].id;
+
+      for (const ex of day.exercises) {
+        await pool.query(
+          `INSERT INTO routine_exercises 
+           (day_id, exercise_name, series, reps, weight_kg)
+           VALUES ($1, $2, $3, $4, $5)`,
+          [dayId, ex.name, ex.series, ex.reps, ex.weight]
+        );
+      }
+    }
 
     res.json({ message: "Rutina actualizada" });
 
   } catch (err) {
-    console.error("ERROR ACTUALIZANDO:", err);
-    res.status(500).json({ error: "Error al actualizar rutina" });
+    console.error(err);
+    res.status(500).json({ error: err.message });
   }
 });
 
