@@ -42,11 +42,11 @@ const Progress = ({ user }) => {
 
   }, [user]);
 
-  if (!selectedEjercicio) {
-    return <p>No hay progreso disponible</p>;
-  }
+  if (!selectedEjercicio || !selectedEjercicio.historico) {
+  return <p>Cargando datos o no hay historial para este ejercicio...</p>;
+}
 
-  const ultimo = selectedEjercicio.historico[selectedEjercicio.historico.length - 1];
+  const ultimo = selectedEjercicio?.historico?.[selectedEjercicio.historico.length - 1];
 
   return (
     <div>

@@ -226,57 +226,6 @@ app.put("/update-routine/:userId", async (req, res) => {
 });
 
 /* ================================
-   PROGRESO (ADAPTADO A JSON 🔥)
-================================ */
-app.get("/progress/:userId", async (req, res) => {
-  const { userId } = req.params;
-
-  try {
-    const result = await pool.query(
-      `
-      SELECT days, created_at
-      FROM routines
-      WHERE user_id = $1
-      ORDER BY created_at ASC
-      `,
-      [userId]
-    );
-
-    const ejerciciosMap = {};
-
-    result.rows.forEach((routine) => {
-      const days = routine.days || [];
-
-      days.forEach((day) => {
-        day.exercises.forEach((ex) => {
-
-          if (!ejerciciosMap[ex.name]) {
-            ejerciciosMap[ex.name] = {
-              nombre: ex.name,
-              historico: []
-            };
-          }
-
-          ejerciciosMap[ex.name].historico.push({
-            semana: `Semana ${ejerciciosMap[ex.name].historico.length + 1}`,
-            peso: ex.weight,
-            repeticiones: ex.reps,
-            fecha: routine.created_at
-          });
-
-        });
-      });
-    });
-
-    res.json(Object.values(ejerciciosMap));
-
-  } catch (error) {
-    console.error("Error obteniendo progreso:", error);
-    res.status(500).json({ error: "Error del servidor" });
-  }
-});
-
-/* ================================
    PERFIL
 ================================ */
 app.get("/profile/:userId", async (req, res) => {
@@ -313,8 +262,71 @@ app.get("/profile/:userId", async (req, res) => {
 });
 
 /* ================================
+   GUARDAR PROGRESO REAL (Neon)
+================================ */
+app.post("/routine-completed", async (req, res) => {
+  const { userId, exercises } = req.body; // 'exercises' es el array que enviamos desde el Front
+
+  try {
+    // Usamos una transacción o un loop para insertar cada ejercicio
+    const queries = exercises.map((ex) => {
+      return pool.query(
+        `INSERT INTO workout_logs 
+         (user_id, exercise_name, series_done, reps_done, weight_kg) 
+         VALUES ($1, $2, $3, $4, $5)`,
+        [userId, ex.exercise_name, ex.series, ex.reps, ex.weight_kg]
+      );
+    });
+
+    await Promise.all(queries);
+    res.status(200).json({ message: "¡Progreso guardado en Neon correctamente!" });
+    
+  } catch (err) {
+    console.error("ERROR AL GUARDAR EN WORKOUT_LOGS:", err);
+    res.status(500).json({ error: "No se pudo guardar el progreso" });
+  }
+});
+
+/* ================================
    SERVER
 ================================ */
 app.listen(3000, () => {
   console.log("Servidor corriendo en puerto 3000");
+});
+
+
+// ENDPOINT PARA LEER (Lo que pedirá Objetives.jsx o Progress.jsx)
+app.get('/progress/:userId', async (req, res) => {
+    const { userId } = req.params;
+    try {
+        const result = await pool.query(
+            'SELECT exercise_name, reps_done, weight_kg, date_completed FROM workout_logs WHERE user_id = $1 ORDER BY date_completed ASC',
+            [userId]
+        );
+
+        // Agrupamos los datos por nombre de ejercicio
+        const ejerciciosMap = {};
+
+        result.rows.forEach((log) => {
+            const nombre = log.exercise_name;
+            
+            if (!ejerciciosMap[nombre]) {
+                ejerciciosMap[nombre] = {
+                    nombre: nombre,
+                    historico: []
+                };
+            }
+
+            ejerciciosMap[nombre].historico.push({
+                semana: new Date(log.date_completed).toLocaleDateString(), // Usamos la fecha como etiqueta
+                peso: log.weight_kg,
+                repeticiones: log.reps_done
+            });
+        });
+
+        res.json(Object.values(ejerciciosMap));
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error al obtener progresos");
+    }
 });

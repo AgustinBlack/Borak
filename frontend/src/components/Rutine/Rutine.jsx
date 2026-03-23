@@ -50,6 +50,73 @@ const Rutine = ({ user }) => {
     }));
   };
 
+
+  
+const [saving, setSaving] = useState(false);
+
+const handleSaveWorkout = async () => {
+  setSaving(true);
+  
+  // 1. Transformar los logs de los inputs en un array plano para la DB
+  const exercisesToSave = [];
+
+  // Recorremos los ejercicios del día seleccionado
+  selectedDay.exercises.forEach((ex) => {
+    const sets = exerciseLogs[ex.name];
+    
+    if (sets) {
+      // Si el usuario registró sets, los promediamos o sumamos 
+      // (Aquí lo más común es guardar el set más pesado o el promedio)
+      // Para simplificar y seguir tu estructura de DB, sacamos el promedio:
+      const setKeys = Object.keys(sets);
+      let totalReps = 0;
+      let maxWeight = 0;
+
+      setKeys.forEach(key => {
+        totalReps += parseInt(sets[key].reps || 0);
+        const w = parseFloat(sets[key].weight || 0);
+        if (w > maxWeight) maxWeight = w;
+      });
+
+      exercisesToSave.push({
+        exercise_name: ex.name,
+        series: setKeys.length,
+        reps: Math.round(totalReps / setKeys.length) || ex.reps,
+        weight_kg: maxWeight || ex.weight
+      });
+    } else {
+      // Si no escribió nada, guardamos lo sugerido
+      exercisesToSave.push({
+        exercise_name: ex.name,
+        series: ex.series,
+        reps: ex.reps,
+        weight_kg: ex.weight
+      });
+    }
+  });
+
+  try {
+    const res = await fetch('http://localhost:3000/routine-completed', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId: user.id,
+        exercises: exercisesToSave
+      })
+    });
+
+    if (res.ok) {
+      alert("¡Entrenamiento guardado con éxito! 🔥");
+    } else {
+      alert("Error al guardar.");
+    }
+  } catch (error) {
+    console.error("Error:", error);
+  } finally {
+    setSaving(false);
+  }
+};
+
   // 🔥 CALCULAR DÍA
   const selectedDayIndex =
     routineData.length > 0
@@ -75,12 +142,31 @@ const Rutine = ({ user }) => {
       <div style={{ marginTop: "40px" }}>
         <h2>
           Rutina del día {selectedDate.toLocaleDateString()}
+          
         </h2>
 
         <div className={styles.ejercicios}>
           {selectedDay && (
             <div className={styles.diaContainer}>
-              <h3>{selectedDay.name}</h3>
+              <h3>{selectedDay.name}
+                 <button 
+                          className={styles.btnGuardar} 
+                          onClick={handleSaveWorkout}
+                          disabled={saving}
+                          style={{
+                            marginTop: '20px',
+                            padding: '15px 30px',
+                            backgroundColor: '#00e676',
+                            color: '#000',
+                            fontWeight: 'bold',
+                            border: 'none',
+                            borderRadius: '8px',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          {saving ? 'Guardando...' : 'Finalizar y Guardar Entrenamiento'}
+                        </button>
+              </h3>
 
               {selectedDay.exercises.map((ex, index) => (
                 <div key={index} className={styles.ejercicio}>
@@ -127,6 +213,7 @@ const Rutine = ({ user }) => {
                               )
                             }
                           />
+            
                         </div>
                       );
                     })}
@@ -167,5 +254,7 @@ const Rutine = ({ user }) => {
     </>
   );
 };
+
+
 
 export default Rutine;

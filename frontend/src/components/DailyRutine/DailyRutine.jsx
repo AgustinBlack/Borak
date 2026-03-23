@@ -6,6 +6,8 @@ const DailyRutine = ({ user }) => {
     const [rutinaDelDia, setRutinaDelDia] = useState([]);
     const [progreso, setProgreso] = useState({});
     const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [saveMessage, setSaveMessage] = useState('');
 
     useEffect(() => {
         // Establecer el día actual en español
@@ -44,6 +46,45 @@ const DailyRutine = ({ user }) => {
             ...prev,
             [id]: { ...prev[id], [field]: value }
         }));
+    };
+
+    const handleGuardar = async () => {
+        setSaving(true);
+        setSaveMessage('');
+    
+
+        const exercises = rutinaDelDia.map((ej, index) => {
+    const p = progreso[index];
+    return {
+        exercise_name: ej.exercise_name,
+        // Si el input está vacío, usamos el valor sugerido (ej.series)
+        series: p?.series !== '' ? parseInt(p.series, 10) : ej.series,
+        reps: p?.reps !== '' ? parseInt(p.reps, 10) : ej.reps,
+        weight_kg: p?.peso !== '' ? parseFloat(p.peso) : ej.weight_kg
+    };
+});
+
+       try {
+        const res = await fetch('http://localhost:3000/routine-completed', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                userId: user.id,
+                exercises: exercises // El array con exercise_name, series, reps, weight_kg
+            })
+        });
+
+            if (!res.ok) {
+                throw new Error('No se pudo guardar la rutina');
+            }
+
+            setSaveMessage('Rutina guardada con éxito.');
+        } catch (error) {
+            console.error(error);
+            setSaveMessage('Error al guardar rutina. Intenta de nuevo.');
+        } finally {
+            setSaving(false);
+        }
     };
 
     if (loading) return <p>Cargando entrenamiento de hoy...</p>;
@@ -97,7 +138,14 @@ const DailyRutine = ({ user }) => {
                     </div>
                 ))}
             </div>
-            <button className={styles.guardar}>Finalizar y Guardar Entrenamiento</button>
+            <button
+                className={styles.guardar}
+                onClick={handleGuardar}
+                disabled={saving}
+            >
+                {saving ? 'Guardando...' : 'Finalizar y Guardar Entrenamiento'}
+            </button>
+            {saveMessage && <p className={styles.saveMessage}>{saveMessage}</p>}
         </div>
     );
 };

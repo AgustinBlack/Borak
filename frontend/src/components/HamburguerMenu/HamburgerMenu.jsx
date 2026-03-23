@@ -34,7 +34,7 @@ export default function HamburgerMenu({ user, logout, isAdmin }) {
               <Link 
                 className={clases.link} 
                 to="/seccion/AdministrarPerfiles"
-                style={{ color: "#ffcc00", fontWeight: "bold" }}
+                style={{ color: "#181710", fontWeight: "bold" }}
               >
                 Administrar perfiles
               </Link>
