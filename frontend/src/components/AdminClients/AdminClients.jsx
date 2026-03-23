@@ -53,7 +53,11 @@ const AdminClients = ({ user }) => {
     const addDay = () => {
         setRoutineDays([
             ...routineDays,
-            { name: `Día ${routineDays.length + 1}`, exercises: [] }
+            { 
+                name: `Día ${routineDays.length + 1}`, 
+                weekDay: null, // 🔥 CAMBIO CLAVE
+                exercises: [] 
+            }
         ]);
     };
 
@@ -77,7 +81,6 @@ const AdminClients = ({ user }) => {
 
     const handleSaveRoutine = async () => {
         try {
-            // 🔒 Validaciones básicas
             if (!targetClient) {
                 alert("Seleccioná un cliente");
                 return;
@@ -93,9 +96,15 @@ const AdminClients = ({ user }) => {
                 return;
             }
 
-            // 🔥 Limpiar datos (MUY IMPORTANTE)
+            // 🔥 VALIDACIÓN NUEVA
+            if (routineDays.some(day => day.weekDay === null)) {
+                alert("Todos los días deben tener un día asignado");
+                return;
+            }
+
             const cleanDays = routineDays.map(day => ({
-                ...day,
+                name: day.name,
+                weekDay: day.weekDay,
                 exercises: day.exercises.map(ex => ({
                     name: ex.name,
                     series: Number(ex.series),
@@ -103,12 +112,6 @@ const AdminClients = ({ user }) => {
                     weight: Number(ex.weight)
                 }))
             }));
-
-            console.log("ENVIANDO:", {
-                userId: targetClient,
-                routineName: newRutineName,
-                days: cleanDays
-            });
 
             const res = await fetch("http://localhost:3000/assign-routine", {
                 method: "POST",
@@ -122,15 +125,11 @@ const AdminClients = ({ user }) => {
                 })
             });
 
-            const data = await res.json();
-
             if (!res.ok) {
-                console.error("ERROR BACK:", data);
                 alert("Error al guardar rutina");
                 return;
             }
 
-            // ✅ Éxito
             alert("Rutina guardada 🔥");
 
             setShowCreateModal(false);
@@ -139,7 +138,7 @@ const AdminClients = ({ user }) => {
             setTargetClient("");
 
         } catch (err) {
-            console.error("ERROR FRONT:", err);
+            console.error(err);
             alert("Error inesperado");
         }
     };
@@ -153,7 +152,6 @@ const AdminClients = ({ user }) => {
             const res = await fetch(`http://localhost:3000/routine/${userId}`);
             const data = await res.json();
 
-            //   setEditingRoutine(data.days || []);
             const ejercicios = data.days?.flatMap(d => d.exercises) || [];
             setEditingRoutine(ejercicios);
             setEditingUserId(userId);
@@ -259,10 +257,6 @@ const AdminClients = ({ user }) => {
                                         Modificar Rutina
                                     </button>
 
-                                    <button className={styles.btnEdit}>
-                                        Ver Progreso
-                                    </button>
-
                                 </td>
                             </tr>
                         ))}
@@ -270,7 +264,7 @@ const AdminClients = ({ user }) => {
                 </table>
             )}
 
-            {/* MODAL CREAR (NO SE TOCA) */}
+            {/* MODAL CREAR */}
             {showCreateModal && (
                 <div className={styles.modalCustom}>
                     <div className={styles.modalContentLarge}>
@@ -285,11 +279,33 @@ const AdminClients = ({ user }) => {
                             />
                         </div>
 
-                        <button className={styles.btnAddExercise} onClick={addDay}>+ Agregar Día</button>
+                        <button className={styles.btnAddExercise} onClick={addDay}>
+                            + Agregar Día
+                        </button>
 
                         {routineDays.map((day, dayIndex) => (
                             <div key={dayIndex} className={styles.exerciseList}>
                                 <strong>{day.name}</strong>
+
+                                {/* 🔥 SELECT NUEVO */}
+                                <select
+                                    className={styles.selectDay}
+                                    value={day.weekDay ?? ""}
+                                    onChange={(e) => {
+                                        const updated = [...routineDays];
+                                        updated[dayIndex].weekDay = Number(e.target.value);
+                                        setRoutineDays(updated);
+                                    }}
+                                >
+                                    <option value="">Seleccionar día</option>
+                                    <option value={1}>Lunes</option>
+                                    <option value={2}>Martes</option>
+                                    <option value={3}>Miércoles</option>
+                                    <option value={4}>Jueves</option>
+                                    <option value={5}>Viernes</option>
+                                    <option value={6}>Sábado</option>
+                                    <option value={0}>Domingo</option>
+                                </select>
 
                                 <button onClick={() => addExerciseToDay(dayIndex)} className={styles.btnAddExercise}>
                                     + Ejercicio
@@ -318,7 +334,12 @@ const AdminClients = ({ user }) => {
                                             onChange={(e) => handleDayExerciseChange(dayIndex, i, "weight", e.target.value)}
                                         />
 
-                                        <button className={styles.btnRemove} onClick={() => removeExerciseFromDay(dayIndex, i)}>✕</button>
+                                        <button
+                                            className={styles.btnRemove}
+                                            onClick={() => removeExerciseFromDay(dayIndex, i)}
+                                        >
+                                            ✕
+                                        </button>
 
                                     </div>
                                 ))}
@@ -326,69 +347,17 @@ const AdminClients = ({ user }) => {
                         ))}
 
                         <div className={styles.modalActions}>
-                            <button className={styles.btnCancel} onClick={() => setShowCreateModal(false)}>Cerrar</button>
-                            <button className={styles.btnSave} onClick={handleSaveRoutine}>Guardar</button>
+                            <button className={styles.btnCancel} onClick={() => setShowCreateModal(false)}>
+                                Cerrar
+                            </button>
+                            <button className={styles.btnSave} onClick={handleSaveRoutine}>
+                                Guardar
+                            </button>
                         </div>
 
                     </div>
                 </div>
             )}
-
-            {/* MODAL EDITAR (MODIFICADO) */}
-            {showEditModal && (
-                <div className={styles.modalCustom}>
-                    <div className={styles.modalContentLarge}>
-
-                        <h2>Editar Rutina</h2>
-
-                        <ul className={styles.exerciseList}>
-                            {editingRoutine.map((ex, i) => (
-                                <li key={i} className={styles.exerciseAdder}>
-
-                                    <p className={styles.exerciseName}>{ex.name}</p>
-
-                                    <input
-                                        type="number"
-                                        value={ex.series}
-                                        onChange={(e) => handleExerciseChange(i, "series", e.target.value)}
-                                    />
-
-                                    <input
-                                        type="number"
-                                        value={ex.reps}
-                                        onChange={(e) => handleExerciseChange(i, "reps", e.target.value)}
-                                    />
-
-                                    <input
-                                        type="number"
-                                        value={ex.weight}
-                                        onChange={(e) => handleExerciseChange(i, "weight", e.target.value)}
-                                    />
-
-                                    <button
-                                        className={styles.btnRemove}
-                                        onClick={() => handleDeleteExercise(i)}
-                                    >
-                                        ✕
-                                    </button>
-
-                                </li>
-                            ))}
-                        </ul>
-
-                        <button className={styles.btnAddExercise} onClick={handleAddExercise}>
-                            + Agregar ejercicio
-                        </button>
-
-                        <div className={styles.modalActions}>
-                            <button className={styles.btnCancel} onClick={() => setShowEditModal(false)}>Cerrar</button>
-                            <button className={styles.btnSave} onClick={handleUpdateRoutine}>Guardar cambios</button>
-                        </div>
-
-                    </div>
-                </div>
-            )}
-
         </div>
     );
 };

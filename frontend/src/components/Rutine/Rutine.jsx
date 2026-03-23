@@ -51,79 +51,78 @@ const Rutine = ({ user }) => {
   };
 
 
-  
-const [saving, setSaving] = useState(false);
 
-const handleSaveWorkout = async () => {
-  setSaving(true);
-  
-  // 1. Transformar los logs de los inputs en un array plano para la DB
-  const exercisesToSave = [];
+  const [saving, setSaving] = useState(false);
 
-  // Recorremos los ejercicios del día seleccionado
-  selectedDay.exercises.forEach((ex) => {
-    const sets = exerciseLogs[ex.name];
-    
-    if (sets) {
-      // Si el usuario registró sets, los promediamos o sumamos 
-      // (Aquí lo más común es guardar el set más pesado o el promedio)
-      // Para simplificar y seguir tu estructura de DB, sacamos el promedio:
-      const setKeys = Object.keys(sets);
-      let totalReps = 0;
-      let maxWeight = 0;
+  const handleSaveWorkout = async () => {
+    setSaving(true);
 
-      setKeys.forEach(key => {
-        totalReps += parseInt(sets[key].reps || 0);
-        const w = parseFloat(sets[key].weight || 0);
-        if (w > maxWeight) maxWeight = w;
-      });
+    // 1. Transformar los logs de los inputs en un array plano para la DB
+    const exercisesToSave = [];
 
-      exercisesToSave.push({
-        exercise_name: ex.name,
-        series: setKeys.length,
-        reps: Math.round(totalReps / setKeys.length) || ex.reps,
-        weight_kg: maxWeight || ex.weight
-      });
-    } else {
-      // Si no escribió nada, guardamos lo sugerido
-      exercisesToSave.push({
-        exercise_name: ex.name,
-        series: ex.series,
-        reps: ex.reps,
-        weight_kg: ex.weight
-      });
-    }
-  });
+    // Recorremos los ejercicios del día seleccionado
+    selectedDay.exercises.forEach((ex) => {
+      const sets = exerciseLogs[ex.name];
 
-  try {
-    const res = await fetch('http://localhost:3000/routine-completed', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        userId: user.id,
-        exercises: exercisesToSave
-      })
+      if (sets) {
+        // Si el usuario registró sets, los promediamos o sumamos 
+        // (Aquí lo más común es guardar el set más pesado o el promedio)
+        // Para simplificar y seguir tu estructura de DB, sacamos el promedio:
+        const setKeys = Object.keys(sets);
+        let totalReps = 0;
+        let maxWeight = 0;
+
+        setKeys.forEach(key => {
+          totalReps += parseInt(sets[key].reps || 0);
+          const w = parseFloat(sets[key].weight || 0);
+          if (w > maxWeight) maxWeight = w;
+        });
+
+        exercisesToSave.push({
+          exercise_name: ex.name,
+          series: setKeys.length,
+          reps: Math.round(totalReps / setKeys.length) || ex.reps,
+          weight_kg: maxWeight || ex.weight
+        });
+      } else {
+        // Si no escribió nada, guardamos lo sugerido
+        exercisesToSave.push({
+          exercise_name: ex.name,
+          series: ex.series,
+          reps: ex.reps,
+          weight_kg: ex.weight
+        });
+      }
     });
 
-    if (res.ok) {
-      alert("¡Entrenamiento guardado con éxito! 🔥");
-    } else {
-      alert("Error al guardar.");
+    try {
+      const res = await fetch('http://localhost:3000/routine-completed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          exercises: exercisesToSave
+        })
+      });
+
+      if (res.ok) {
+        alert("¡Entrenamiento guardado con éxito! 🔥");
+      } else {
+        alert("Error al guardar.");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    } finally {
+      setSaving(false);
     }
-  } catch (error) {
-    console.error("Error:", error);
-  } finally {
-    setSaving(false);
-  }
-};
+  };
 
   // 🔥 CALCULAR DÍA
-  const selectedDayIndex =
-    routineData.length > 0
-      ? selectedDate.getDate() % routineData.length
-      : 0;
+  const dayOfWeek = selectedDate.getDay();
 
-  const selectedDay = routineData[selectedDayIndex];
+  const selectedDay = routineData.find(
+    (day) => day.weekDay === dayOfWeek
+  );
 
   if (loading) return <p>Cargando tu entrenamiento...</p>;
   if (!routineData || routineData.length === 0)
@@ -142,84 +141,26 @@ const handleSaveWorkout = async () => {
       <div style={{ marginTop: "40px" }}>
         <h2>
           Rutina del día {selectedDate.toLocaleDateString()}
-          
+
         </h2>
 
         <div className={styles.ejercicios}>
-          {selectedDay && (
+          {selectedDay ? (
             <div className={styles.diaContainer}>
-              <h3>{selectedDay.name}
-                 <button 
-                          className={styles.btnGuardar} 
-                          onClick={handleSaveWorkout}
-                          disabled={saving}
-                          style={{
-                            marginTop: '20px',
-                            padding: '15px 30px',
-                            backgroundColor: '#00e676',
-                            color: '#000',
-                            fontWeight: 'bold',
-                            border: 'none',
-                            borderRadius: '8px',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          {saving ? 'Guardando...' : 'Finalizar y Guardar Entrenamiento'}
-                        </button>
-              </h3>
+              <h3>{selectedDay.name}</h3>
 
               {selectedDay.exercises.map((ex, index) => (
                 <div key={index} className={styles.ejercicio}>
                   <h4>{ex.name}</h4>
-
-                  <p>
-                    Objetivo: {ex.series} x {ex.reps}
-                  </p>
-
-                  <p>Peso sugerido: {ex.weight} kg</p>
-
-                  <div className={styles.logContainer}>
-                    <h4>Registrar hoy</h4>
-
-                    {[...Array(ex.series)].map((_, i) => {
-                      const setNumber = i + 1;
-
-                      return (
-                        <div key={setNumber} className={styles.setRow}>
-                          <span>Set {setNumber}</span>
-
-                          <input
-                            type="number"
-                            placeholder="Reps reales"
-                            onChange={(e) =>
-                              handleInputChange(
-                                ex.name,
-                                setNumber,
-                                "reps",
-                                e.target.value
-                              )
-                            }
-                          />
-
-                          <input
-                            type="number"
-                            placeholder="Peso usado"
-                            onChange={(e) =>
-                              handleInputChange(
-                                ex.name,
-                                setNumber,
-                                "weight",
-                                e.target.value
-                              )
-                            }
-                          />
-            
-                        </div>
-                      );
-                    })}
-                  </div>
+                  <p>{ex.series} x {ex.reps}</p>
+                  <p>{ex.weight} kg</p>
                 </div>
               ))}
+            </div>
+          ) : (
+            <div className={styles.descanso}>
+              <h3>💤 Día de descanso</h3>
+              <p>No hay entrenamiento asignado</p>
             </div>
           )}
         </div>

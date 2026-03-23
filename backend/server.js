@@ -73,39 +73,37 @@ app.post("/register", async (req, res) => {
 /* ================================
    OBTENER RUTINA (CORREGIDO 🔥)
 ================================ */
-app.get("/routine/:userId", async (req, res) => {
+app.get('/routine/:userId', async (req, res) => {
   const { userId } = req.params;
 
   try {
     const routineRes = await pool.query(
-      `SELECT * FROM routines
-       WHERE user_id = $1
-       ORDER BY id DESC
-       LIMIT 1`,
+      'SELECT * FROM routines WHERE user_id = $1 LIMIT 1',
       [userId]
     );
 
     if (routineRes.rows.length === 0) {
-      return res.status(404).json({ message: "No hay rutina" });
+      return res.status(404).json({ error: 'No routine' });
     }
 
     const routine = routineRes.rows[0];
 
     const daysRes = await pool.query(
-      `SELECT * FROM routine_days WHERE routine_id = $1`,
+      'SELECT * FROM routine_days WHERE routine_id = $1',
       [routine.id]
     );
 
     const days = [];
 
     for (const day of daysRes.rows) {
-      const exRes = await pool.query(
-        `SELECT * FROM routine_exercises WHERE day_id = $1`,
-        [day.id]
-      );
+const exRes = await pool.query(
+  'SELECT * FROM routine_exercises WHERE day_id = $1',
+  [day.id]
+);
 
       days.push({
         name: day.name,
+        weekDay: day.week_day, // 🔥 CLAVE
         exercises: exRes.rows.map(ex => ({
           name: ex.exercise_name,
           series: ex.series,
@@ -116,13 +114,14 @@ app.get("/routine/:userId", async (req, res) => {
     }
 
     res.json({
-      ...routine,
+      id: routine.id,
+      name: routine.name,
       days
     });
 
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Error al obtener rutina" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al obtener rutina' });
   }
 });
 
@@ -130,9 +129,9 @@ app.get("/routine/:userId", async (req, res) => {
    ASIGNAR RUTINA (CON DAYS)
 ================================ */
 app.post("/assign-routine", async (req, res) => {
-  const { userId, routineName, days } = req.body;
-
   try {
+    const { userId, routineName, days } = req.body;
+
     // 1. Crear rutina
     const routineResult = await pool.query(
       `INSERT INTO routines (user_id, name)
@@ -145,11 +144,12 @@ app.post("/assign-routine", async (req, res) => {
 
     // 2. Crear días y ejercicios
     for (const day of days) {
+
       const dayResult = await pool.query(
-        `INSERT INTO routine_days (routine_id, name)
-         VALUES ($1, $2)
+        `INSERT INTO routine_days (routine_id, name, week_day)
+         VALUES ($1, $2, $3)
          RETURNING id`,
-        [routineId, day.name]
+        [routineId, day.name, day.weekDay]
       );
 
       const dayId = dayResult.rows[0].id;
@@ -157,23 +157,28 @@ app.post("/assign-routine", async (req, res) => {
       for (const ex of day.exercises) {
         await pool.query(
           `INSERT INTO routine_exercises 
-           (day_id, exercise_name, series, reps, weight_kg)
-           VALUES ($1, $2, $3, $4, $5)`,
-          [dayId, ex.name, ex.series, ex.reps, ex.weight]
+           (routine_id, exercise_name, series, reps, weight_kg, day_id)
+           VALUES ($1, $2, $3, $4, $5, $6)`,
+          [
+            routineId,
+            ex.name,
+            ex.series,
+            ex.reps,
+            ex.weight,
+            dayId
+          ]
         );
-        console.log("DAY:", day);
-console.log("EXERCISES:", day.exercises);
       }
     }
 
-    res.json({ message: "Rutina creada correctamente" });
+    res.json({ success: true });
 
-  } catch (err) {
-    console.error("ERROR GUARDANDO RUTINA:", err);
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    console.error("ERROR REAL:", error);
+    res.status(500).json({ error: "Error al asignar rutina" });
   }
-  console.log(days)
 });
+
 
 /* ================================
    ACTUALIZAR RUTINA 🔥
@@ -287,46 +292,48 @@ app.post("/routine-completed", async (req, res) => {
   }
 });
 
-/* ================================
-   SERVER
-================================ */
-app.listen(3000, () => {
-  console.log("Servidor corriendo en puerto 3000");
-});
 
 
 // ENDPOINT PARA LEER (Lo que pedirá Objetives.jsx o Progress.jsx)
 app.get('/progress/:userId', async (req, res) => {
-    const { userId } = req.params;
-    try {
+  const { userId } = req.params;
+  try {
         const result = await pool.query(
-            'SELECT exercise_name, reps_done, weight_kg, date_completed FROM workout_logs WHERE user_id = $1 ORDER BY date_completed ASC',
-            [userId]
+          'SELECT exercise_name, reps_done, weight_kg, date_completed FROM workout_logs WHERE user_id = $1 ORDER BY date_completed ASC',
+          [userId]
         );
-
+        
         // Agrupamos los datos por nombre de ejercicio
         const ejerciciosMap = {};
-
+        
         result.rows.forEach((log) => {
-            const nombre = log.exercise_name;
-            
-            if (!ejerciciosMap[nombre]) {
-                ejerciciosMap[nombre] = {
-                    nombre: nombre,
-                    historico: []
-                };
-            }
-
-            ejerciciosMap[nombre].historico.push({
-                semana: new Date(log.date_completed).toLocaleDateString(), // Usamos la fecha como etiqueta
-                peso: log.weight_kg,
-                repeticiones: log.reps_done
-            });
+          const nombre = log.exercise_name;
+          
+          if (!ejerciciosMap[nombre]) {
+            ejerciciosMap[nombre] = {
+              nombre: nombre,
+              historico: []
+            };
+          }
+          
+          ejerciciosMap[nombre].historico.push({
+            semana: new Date(log.date_completed).toLocaleDateString(), // Usamos la fecha como etiqueta
+            peso: log.weight_kg,
+            repeticiones: log.reps_done
+          });
         });
-
+        
         res.json(Object.values(ejerciciosMap));
-    } catch (err) {
+      } catch (err) {
         console.error(err);
         res.status(500).send("Error al obtener progresos");
-    }
-});
+      }
+    });
+    
+    
+    /* ================================
+       SERVER
+    ================================ */
+    app.listen(3000, () => {
+      console.log("Servidor corriendo en puerto 3000");
+    });
