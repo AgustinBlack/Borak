@@ -132,10 +132,11 @@ const Rutine = ({ user }) => {
     <>
       <h2>{routineName}</h2>
 
-      <WorkoutCalendar
-        workoutSessions={workoutSessions}
-        onDateClick={(date) => setSelectedDate(date)}
-      />
+<WorkoutCalendar
+  routineDays={routineData} // <-- Verifica que este nombre sea igual al del hijo
+  workoutSessions={workoutSessions}
+  onDateClick={(date) => setSelectedDate(date)}
+/>
 
       {/* 🔝 RUTINA DEL DÍA */}
       <div style={{ marginTop: "40px" }}>

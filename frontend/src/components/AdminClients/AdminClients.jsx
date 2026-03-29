@@ -23,21 +23,23 @@ const AdminClients = ({ user }) => {
 
     const [routineDays, setRoutineDays] = useState([]);
 
-    const [editingRoutine, setEditingRoutine] = useState([]);
+    const [editingRoutineName, setEditingRoutineName] = useState("");
+    const [editingRoutineDays, setEditingRoutineDays] = useState([]);
     const [editingUserId, setEditingUserId] = useState(null);
 
+    const fetchUsers = async () => {
+        try {
+            const response = await fetch("http://localhost:3000/users-with-routines");
+            const data = await response.json();
+            setUsersData(data);
+        } catch (error) {
+            console.error("Error al cargar usuarios:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const fetchUsers = async () => {
-            try {
-                const response = await fetch("http://localhost:3000/users");
-                const data = await response.json();
-                setUsersData(data.filter(u => u.role === 'user'));
-                setLoading(false);
-            } catch (error) {
-                console.error("Error al cargar usuarios:", error);
-                setLoading(false);
-            }
-        };
         fetchUsers();
     }, []);
 
@@ -136,6 +138,7 @@ const AdminClients = ({ user }) => {
             setRoutineDays([]);
             setNewRutineName("");
             setTargetClient("");
+            fetchUsers();
 
         } catch (err) {
             console.error(err);
@@ -152,30 +155,65 @@ const AdminClients = ({ user }) => {
             const res = await fetch(`http://localhost:3000/routine/${userId}`);
             const data = await res.json();
 
-            const ejercicios = data.days?.flatMap(d => d.exercises) || [];
-            setEditingRoutine(ejercicios);
+            if (!res.ok) {
+                alert(data.message || "No se encontró rutina asignada");
+                return;
+            }
+
+            setEditingRoutineName(data.routine_name || "");
+            setEditingRoutineDays(data.days || []);
             setEditingUserId(userId);
             setShowEditModal(true);
         } catch (err) {
             console.error(err);
+            alert("Error cargando la rutina para editar");
         }
     };
 
-    const handleExerciseChange = (index, field, value) => {
-        const updated = [...editingRoutine];
-        updated[index][field] = value;
-        setEditingRoutine(updated);
+    const handleEditingDayChange = (dayIndex, field, value) => {
+        const updatedDays = [...editingRoutineDays];
+        updatedDays[dayIndex] = {
+            ...updatedDays[dayIndex],
+            [field]: value
+        };
+        setEditingRoutineDays(updatedDays);
     };
 
-    const handleDeleteExercise = (index) => {
-        setEditingRoutine(editingRoutine.filter((_, i) => i !== index));
+    const handleEditingExerciseChange = (dayIndex, exIndex, field, value) => {
+        const updatedDays = [...editingRoutineDays];
+        updatedDays[dayIndex] = {
+            ...updatedDays[dayIndex],
+            exercises: updatedDays[dayIndex].exercises.map((ex, i) =>
+                i === exIndex ? { ...ex, [field]: value } : ex
+            )
+        };
+        setEditingRoutineDays(updatedDays);
     };
 
-    const handleAddExercise = () => {
-        setEditingRoutine([
-            ...editingRoutine,
-            { name: "Nuevo ejercicio", series: "", reps: "", weight: "" }
+    const handleDeleteEditingExercise = (dayIndex, exIndex) => {
+        const updatedDays = [...editingRoutineDays];
+        updatedDays[dayIndex] = {
+            ...updatedDays[dayIndex],
+            exercises: updatedDays[dayIndex].exercises.filter((_, i) => i !== exIndex)
+        };
+        setEditingRoutineDays(updatedDays);
+    };
+
+    const handleAddEditingExercise = (dayIndex) => {
+        const updatedDays = [...editingRoutineDays];
+        updatedDays[dayIndex].exercises.push({ name: "", series: "", reps: "", weight: "" });
+        setEditingRoutineDays(updatedDays);
+    };
+
+    const handleAddEditingDay = () => {
+        setEditingRoutineDays([
+            ...editingRoutineDays,
+            { name: `Día ${editingRoutineDays.length + 1}`, weekDay: null, exercises: [] }
         ]);
+    };
+
+    const handleDeleteEditingDay = (dayIndex) => {
+        setEditingRoutineDays(editingRoutineDays.filter((_, i) => i !== dayIndex));
     };
 
     const handleUpdateRoutine = async () => {
@@ -184,20 +222,30 @@ const AdminClients = ({ user }) => {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    days: [
-                        {
-                            name: "Día único",
-                            exercises: editingRoutine
-                        }
-                    ]
+                    routineName: editingRoutineName,
+                    days: editingRoutineDays.map(day => ({
+                        name: day.name,
+                        weekDay: day.weekDay,
+                        exercises: day.exercises.map(ex => ({
+                            name: ex.name,
+                            series: Number(ex.series),
+                            reps: Number(ex.reps),
+                            weight: Number(ex.weight)
+                        }))
+                    }))
                 })
             });
 
             alert("Rutina actualizada 🔥");
             setShowEditModal(false);
+            setEditingUserId(null);
+            setEditingRoutineName("");
+            setEditingRoutineDays([]);
+            fetchUsers();
 
         } catch (err) {
             console.error(err);
+            alert("Error al actualizar la rutina");
         }
     };
 
@@ -230,6 +278,7 @@ const AdminClients = ({ user }) => {
                         <tr>
                             <th>Nombre</th>
                             <th>Email</th>
+                            <th>Rutina actual</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -238,6 +287,7 @@ const AdminClients = ({ user }) => {
                             <tr key={u.id}>
                                 <td>{u.name}</td>
                                 <td>{u.email}</td>
+                                <td>{u.current_routine || 'Sin rutina'}</td>
                                 <td>
 
                                     <button
@@ -355,6 +405,107 @@ const AdminClients = ({ user }) => {
                             </button>
                         </div>
 
+                    </div>
+                </div>
+            )}
+
+            {showEditModal && (
+                <div className={styles.modalCustom}>
+                    <div className={styles.modalContentLarge}>
+                        <h2>Modificar Rutina</h2>
+
+                        <div className={styles.formGroup}>
+                            <label>Nombre de la rutina</label>
+                            <input
+                                value={editingRoutineName}
+                                onChange={(e) => setEditingRoutineName(e.target.value)}
+                            />
+                        </div>
+
+                        {editingRoutineDays.map((day, dayIndex) => (
+                            <div key={dayIndex} className={styles.exerciseList}>
+                                <div className={styles.formRow}>
+                                    <div className={styles.formGroup}>
+                                        <label>Nombre del día</label>
+                                        <input
+                                            value={day.name}
+                                            onChange={(e) => handleEditingDayChange(dayIndex, 'name', e.target.value)}
+                                        />
+                                    </div>
+                                    <div className={styles.formGroup}>
+                                        <label>Día de la semana</label>
+                                        <select
+                                            value={day.weekDay ?? ""}
+                                            onChange={(e) => handleEditingDayChange(dayIndex, 'weekDay', e.target.value === "" ? null : Number(e.target.value))}
+                                        >
+                                            <option value="">Seleccionar día</option>
+                                            <option value={1}>Lunes</option>
+                                            <option value={2}>Martes</option>
+                                            <option value={3}>Miércoles</option>
+                                            <option value={4}>Jueves</option>
+                                            <option value={5}>Viernes</option>
+                                            <option value={6}>Sábado</option>
+                                            <option value={0}>Domingo</option>
+                                        </select>
+                                    </div>
+                                    <button className={styles.btnRemove} onClick={() => handleDeleteEditingDay(dayIndex)}>
+                                        ✕
+                                    </button>
+                                </div>
+
+                                {day.exercises.map((ex, exIndex) => (
+                                    <div key={exIndex} className={styles.exerciseAdder}>
+                                        <select
+                                            value={ex.name}
+                                            onChange={(e) => handleEditingExerciseChange(dayIndex, exIndex, 'name', e.target.value)}
+                                        >
+                                            <option value="">Elegir ejercicio</option>
+                                            {ejerciciosDB.map(option => (
+                                                <option key={option.id} value={option.name}>{option.name}</option>
+                                            ))}
+                                        </select>
+                                        <input
+                                            type="number"
+                                            placeholder="S"
+                                            value={ex.series}
+                                            onChange={(e) => handleEditingExerciseChange(dayIndex, exIndex, 'series', e.target.value)}
+                                        />
+                                        <input
+                                            type="number"
+                                            placeholder="R"
+                                            value={ex.reps}
+                                            onChange={(e) => handleEditingExerciseChange(dayIndex, exIndex, 'reps', e.target.value)}
+                                        />
+                                        <input
+                                            type="number"
+                                            placeholder="Kg"
+                                            value={ex.weight}
+                                            onChange={(e) => handleEditingExerciseChange(dayIndex, exIndex, 'weight', e.target.value)}
+                                        />
+                                        <button className={styles.btnRemove} onClick={() => handleDeleteEditingExercise(dayIndex, exIndex)}>
+                                            ✕
+                                        </button>
+                                    </div>
+                                ))}
+
+                                <button className={styles.btnAddExercise} onClick={() => handleAddEditingExercise(dayIndex)}>
+                                    + Ejercicio
+                                </button>
+                            </div>
+                        ))}
+
+                        <button className={styles.btnAddExercise} onClick={handleAddEditingDay}>
+                            + Agregar Día
+                        </button>
+
+                        <div className={styles.modalActions}>
+                            <button className={styles.btnCancel} onClick={() => setShowEditModal(false)}>
+                                Cerrar
+                            </button>
+                            <button className={styles.btnSave} onClick={handleUpdateRoutine}>
+                                Guardar cambios
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
