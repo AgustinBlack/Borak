@@ -29,7 +29,7 @@ const AdminClients = ({ user }) => {
 
     const fetchUsers = async () => {
         try {
-            const response = await fetch("http://localhost:3000/users");
+            const response = await fetch("http://localhost:3000/users-with-routines");
             const data = await response.json();
             setUsersData(data);
         } catch (error) {
