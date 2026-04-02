@@ -9,21 +9,24 @@ const Rutine = ({ user }) => {
   const [routineData, setRoutineData] = useState([]);
   const [routineName, setRoutineName] = useState("");
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [dailyRoutine, setDailyRoutine] = useState(null);
 
-  // --- FETCH BACKEND ---
+  // --- 1. FETCH BACKEND ---
   useEffect(() => {
     const fetchRoutine = async () => {
       try {
-        const response = await fetch(
-          `http://localhost:3000/routine/${user?.id}`
-        );
+        const response = await fetch(`http://localhost:3000/routine/${user?.id}`);
 
         if (response.status === 404) {
           setRoutineData([]);
         } else if (response.ok) {
           const data = await response.json();
-
-          setRoutineData(data.days || []);
+          const days = (data.days || []).map(day => ({
+            ...day,
+            weekDay: Number(day.weekDay)
+          }));
+          setRoutineData(days);
           setRoutineName(data.name || "Mi Rutina");
         }
       } catch (error) {
@@ -34,9 +37,17 @@ const Rutine = ({ user }) => {
     };
 
     if (user?.id) fetchRoutine();
-  }, [user]);
+  }, [user]); // <-- esta llave cierra el useEffect 1
 
-  // --- INPUT HANDLER ---
+  // --- 2. EFECTO PARA CALCULAR LA RUTINA DIARIA ---
+  useEffect(() => {
+    const dayOfWeek = selectedDate.getDay();
+    const foundDay = routineData.find((day) => Number(day.weekDay) === dayOfWeek);
+    setDailyRoutine(foundDay || null);
+    setExerciseLogs({});
+  }, [selectedDate, routineData]); // <-- esta llave cierra el useEffect 2
+
+  // --- 3. INPUT HANDLER ---
   const handleInputChange = (exerciseName, setNumber, field, value) => {
     setExerciseLogs((prev) => ({
       ...prev,
@@ -50,24 +61,17 @@ const Rutine = ({ user }) => {
     }));
   };
 
-
-
-  const [saving, setSaving] = useState(false);
-
+  // --- 4. GUARDAR ENTRENAMIENTO ---
   const handleSaveWorkout = async () => {
-    setSaving(true);
+    if (!dailyRoutine) return;
 
-    // 1. Transformar los logs de los inputs en un array plano para la DB
+    setSaving(true);
     const exercisesToSave = [];
 
-    // Recorremos los ejercicios del día seleccionado
-    selectedDay.exercises.forEach((ex) => {
+    dailyRoutine.exercises.forEach((ex) => {
       const sets = exerciseLogs[ex.name];
 
       if (sets) {
-        // Si el usuario registró sets, los promediamos o sumamos 
-        // (Aquí lo más común es guardar el set más pesado o el promedio)
-        // Para simplificar y seguir tu estructura de DB, sacamos el promedio:
         const setKeys = Object.keys(sets);
         let totalReps = 0;
         let maxWeight = 0;
@@ -85,7 +89,6 @@ const Rutine = ({ user }) => {
           weight_kg: maxWeight || ex.weight
         });
       } else {
-        // Si no escribió nada, guardamos lo sugerido
         exercisesToSave.push({
           exercise_name: ex.name,
           series: ex.series,
@@ -117,56 +120,69 @@ const Rutine = ({ user }) => {
     }
   };
 
-  // 🔥 CALCULAR DÍA
-  const dayOfWeek = selectedDate.getDay();
-
-  const selectedDay = routineData.find(
-    (day) => day.weekDay === dayOfWeek
-  );
-
   if (loading) return <p>Cargando tu entrenamiento...</p>;
-  if (!routineData || routineData.length === 0)
-    return <p>No tienes una rutina asignada aún.</p>;
+  if (!routineData || routineData.length === 0) return <p>No tienes una rutina asignada aún.</p>;
 
   return (
     <>
       <h2>{routineName}</h2>
 
       <WorkoutCalendar
+        routineDays={routineData}
         workoutSessions={workoutSessions}
         onDateClick={(date) => setSelectedDate(date)}
       />
 
-      {/* 🔝 RUTINA DEL DÍA */}
       <div style={{ marginTop: "40px" }}>
-        <h2>
-          Rutina del día {selectedDate.toLocaleDateString()}
-
-        </h2>
+        <h2>Rutina del día: {selectedDate.toLocaleDateString()}</h2>
 
         <div className={styles.ejercicios}>
-          {selectedDay ? (
+          {dailyRoutine ? (
             <div className={styles.diaContainer}>
-              <h3>{selectedDay.name}</h3>
+              <h3>{dailyRoutine.name}</h3>
 
-              {selectedDay.exercises.map((ex, index) => (
+              {dailyRoutine.exercises.map((ex, index) => (
                 <div key={index} className={styles.ejercicio}>
                   <h4>{ex.name}</h4>
-                  <p>{ex.series} x {ex.reps}</p>
-                  <p>{ex.weight} kg</p>
+                  <p>Objetivo: {ex.series} series x {ex.reps} reps ({ex.weight}kg)</p>
+
+                  {Array.from({ length: ex.series }).map((_, serieIndex) => (
+                    <div key={serieIndex} style={{ display: 'flex', gap: '10px', marginTop: '5px' }}>
+                      <span>Set {serieIndex + 1}:</span>
+                      <input
+                        type="number"
+                        placeholder="Reps"
+                        style={{ width: '60px' }}
+                        onChange={(e) => handleInputChange(ex.name, serieIndex, "reps", e.target.value)}
+                      />
+                      <input
+                        type="number"
+                        placeholder="Kg"
+                        style={{ width: '60px' }}
+                        onChange={(e) => handleInputChange(ex.name, serieIndex, "weight", e.target.value)}
+                      />
+                    </div>
+                  ))}
                 </div>
               ))}
+
+              <button
+                onClick={handleSaveWorkout}
+                disabled={saving}
+                style={{ marginTop: '20px', padding: '10px 20px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px' }}
+              >
+                {saving ? "Guardando..." : "Finalizar Entrenamiento 🔥"}
+              </button>
             </div>
           ) : (
             <div className={styles.descanso}>
               <h3>💤 Día de descanso</h3>
-              <p>No hay entrenamiento asignado</p>
+              <p>No hay entrenamiento asignado para hoy. ¡A recuperar energías!</p>
             </div>
           )}
         </div>
       </div>
 
-      {/* 🔽 RUTINA GENERAL (SOLO VISUAL) */}
       <div style={{ marginTop: "60px" }}>
         <h2>Rutina completa</h2>
 
@@ -178,14 +194,8 @@ const Rutine = ({ user }) => {
               {day.exercises.map((ex, index) => (
                 <div key={index} className={styles.ejercicio}>
                   <h4>{ex.name}</h4>
-
-                  <p>
-                    {ex.series} sets x {ex.reps} reps
-                  </p>
-
+                  <p>{ex.series} sets x {ex.reps} reps</p>
                   <p>{ex.weight} kg</p>
-
-                  {/* ❌ SIN INPUTS ACÁ */}
                 </div>
               ))}
             </div>
@@ -195,7 +205,5 @@ const Rutine = ({ user }) => {
     </>
   );
 };
-
-
 
 export default Rutine;

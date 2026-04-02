@@ -1,151 +1,185 @@
 import { useState, useEffect } from 'react';
+import WorkoutCalendar from './CalendarWorkout'; 
 import styles from './DailyRutine.module.css';
 
 const DailyRutine = ({ user }) => {
-    const [diaActual, setDiaActual] = useState('');
-    const [rutinaDelDia, setRutinaDelDia] = useState([]);
+    // 1. ESTADOS
+    const [fullRoutine, setFullRoutine] = useState(null); // Datos de la DB
+    const [selectedDate, setSelectedDate] = useState(new Date());
+    const [rutinaDelDia, setRutinaDelDia] = useState(null); // Día específico filtrado
     const [progreso, setProgreso] = useState({});
+    
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [saveMessage, setSaveMessage] = useState('');
 
+    // 2. CARGA INICIAL
     useEffect(() => {
-        // Establecer el día actual en español
-        const hoy = new Date().toLocaleDateString('es-ES', { weekday: 'long' });
-        setDiaActual(hoy);
-
-        const fetchRutinaReal = async () => {
+        const fetchRoutine = async () => {
             try {
-                // Llamamos a tu endpoint personalizado
-                const response = await fetch(`http://localhost:3000/routine/${user.id}`);
-                const data = await response.json();
-
-                if (response.ok) {
-                    setRutinaDelDia(data);
-                    
-                    // Inicializamos el estado del progreso basándonos en los ejercicios reales
-                    const initialProgreso = {};
-                    data.forEach((ej, index) => {
-                        // Usamos index o un id único de la DB
-                        initialProgreso[index] = { series: '', reps: '', peso: '' };
-                    });
-                    setProgreso(initialProgreso);
+                const res = await fetch(`http://localhost:3000/routine/${user.id}`);
+                const data = await res.json();
+                
+                if (res.ok) {
+                    setFullRoutine(data);
+                    filtrarPorDia(data, new Date());
                 }
             } catch (error) {
-                console.error("Error cargando rutina diaria:", error);
+                console.error("Error cargando rutina:", error);
             } finally {
                 setLoading(false);
             }
         };
 
-        if (user?.id) fetchRutinaReal();
-    }, [user]);
+        if (user?.id) fetchRoutine();
+    }, [user.id]);
 
-    const handleChange = (id, field, value) => {
+    // 3. LÓGICA DE FILTRADO
+    const filtrarPorDia = (routine, date) => {
+        const dayOfWeek = date.getDay(); // 0 (Dom) a 6 (Sab)
+        const dayMatch = routine.days.find(d => d.weekDay === dayOfWeek);
+        
+        if (dayMatch) {
+            setRutinaDelDia(dayMatch);
+            // Inicializar inputs vacíos para este día
+            const initialProgreso = {};
+            dayMatch.exercises.forEach((_, index) => {
+                initialProgreso[index] = { series: '', reps: '', peso: '' };
+            });
+            setProgreso(initialProgreso);
+        } else {
+            setRutinaDelDia(null);
+        }
+    };
+
+    // 4. MANEJADORES DE EVENTOS
+    const handleDateClick = (date) => {
+        setSelectedDate(date);
+        setSaveMessage('');
+        if (fullRoutine) {
+            filtrarPorDia(fullRoutine, date);
+        }
+    };
+
+    const handleChange = (index, field, value) => {
         setProgreso(prev => ({
             ...prev,
-            [id]: { ...prev[id], [field]: value }
+            [index]: { ...prev[index], [field]: value }
         }));
     };
 
     const handleGuardar = async () => {
+        if (!rutinaDelDia) return;
         setSaving(true);
         setSaveMessage('');
-    
 
-        const exercises = rutinaDelDia.map((ej, index) => {
-    const p = progreso[index];
-    return {
-        exercise_name: ej.exercise_name,
-        // Si el input está vacío, usamos el valor sugerido (ej.series)
-        series: p?.series !== '' ? parseInt(p.series, 10) : ej.series,
-        reps: p?.reps !== '' ? parseInt(p.reps, 10) : ej.reps,
-        weight_kg: p?.peso !== '' ? parseFloat(p.peso) : ej.weight_kg
-    };
-});
-
-       try {
-        const res = await fetch('http://localhost:3000/routine-completed', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                userId: user.id,
-                exercises: exercises // El array con exercise_name, series, reps, weight_kg
-            })
+        const exercisesToSave = rutinaDelDia.exercises.map((ej, index) => {
+            const p = progreso[index];
+            return {
+                exercise_name: ej.name,
+                series: p?.series !== '' ? parseInt(p.series, 10) : ej.series,
+                reps: p?.reps !== '' ? parseInt(p.reps, 10) : ej.reps,
+                weight_kg: p?.peso !== '' ? parseFloat(p.peso) : ej.weight
+            };
         });
 
-            if (!res.ok) {
-                throw new Error('No se pudo guardar la rutina');
-            }
+        try {
+            const res = await fetch('http://localhost:3000/routine-completed', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId: user.id,
+                    exercises: exercisesToSave
+                })
+            });
 
-            setSaveMessage('Rutina guardada con éxito.');
+            if (res.ok) {
+                setSaveMessage('¡Entrenamiento guardado con éxito! 🔥');
+            } else {
+                throw new Error('Error al guardar');
+            }
         } catch (error) {
-            console.error(error);
-            setSaveMessage('Error al guardar rutina. Intenta de nuevo.');
+            setSaveMessage('Error al conectar con el servidor.');
         } finally {
             setSaving(false);
         }
     };
 
-    if (loading) return <p>Cargando entrenamiento de hoy...</p>;
-
-    if (rutinaDelDia.length === 0) {
-        return <p className={styles.noRutina}>No hay rutina programada para hoy ({diaActual}).</p>;
-    }
+    // 5. RENDERIZADO
+    if (loading) return <div className={styles.container}><p>Cargando información...</p></div>;
 
     return (
         <div className={styles.container}>
-            <h1>Rutina del Día: {diaActual.charAt(0).toUpperCase() + diaActual.slice(1)}</h1>
-            <p className={styles.routineSubtitle}>Enfoque: {rutinaDelDia[0]?.routine_name}</p>
+            <h1>Tu Plan de Entrenamiento</h1>
             
-            <div className={styles.ejercicios}>
-                {rutinaDelDia.map((ej, index) => (
-                    <div key={index} className={styles.ejercicio}>
-                        <h3>{ej.exercise_name}</h3>
-                        <div className={styles.sugerido}>
-                            <span>Sugerido: {ej.series} series x {ej.reps} reps ({ej.weight_kg}kg)</span>
-                        </div>
-                        
-                        <div className={styles.inputs}>
-                            <label>
-                                Series:
-                                <input
-                                    type="number"
-                                    placeholder="0"
-                                    value={progreso[index]?.series || ''}
-                                    onChange={(e) => handleChange(index, 'series', e.target.value)}
-                                />
-                            </label>
-                            <label>
-                                Reps:
-                                <input
-                                    type="number"
-                                    placeholder="0"
-                                    value={progreso[index]?.reps || ''}
-                                    onChange={(e) => handleChange(index, 'reps', e.target.value)}
-                                />
-                            </label>
-                            <label>
-                                Peso:
-                                <input
-                                    type="number"
-                                    placeholder="kg"
-                                    value={progreso[index]?.peso || ''}
-                                    onChange={(e) => handleChange(index, 'peso', e.target.value)}
-                                />
-                            </label>
-                        </div>
-                    </div>
-                ))}
+            <div style={{ marginBottom: "30px", display: "flex", justifyContent: "center" }}>
+                <WorkoutCalendar 
+                    routineDays={fullRoutine?.days || []} 
+                    onDateClick={handleDateClick}
+                    workoutSessions={[]} // Aquí irían los logs históricos
+                />
             </div>
-            <button
-                className={styles.guardar}
-                onClick={handleGuardar}
-                disabled={saving}
-            >
-                {saving ? 'Guardando...' : 'Finalizar y Guardar Entrenamiento'}
-            </button>
-            {saveMessage && <p className={styles.saveMessage}>{saveMessage}</p>}
+
+            <hr style={{ margin: "20px 0", borderColor: "#333" }} />
+
+            <h2>
+                Rutina del {selectedDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+            </h2>
+
+            {!rutinaDelDia ? (
+                <p className={styles.noRutina}>Hoy es tu día de descanso. ¡A recuperar energías! 🔋</p>
+            ) : (
+                <>
+                    <p className={styles.routineSubtitle}>Enfoque: {rutinaDelDia.name} ({fullRoutine.name})</p>
+                    
+                    <div className={styles.ejercicios}>
+                        {rutinaDelDia.exercises.map((ej, index) => (
+                            <div key={index} className={styles.ejercicio}>
+                                <h3>{ej.name}</h3>
+                                <div className={styles.sugerido}>
+                                    <span>Sugerido: {ej.series} series x {ej.reps} reps ({ej.weight}kg)</span>
+                                </div>
+                                
+                                <div className={styles.inputs}>
+                                    <label>Series:
+                                        <input
+                                            type="number"
+                                            placeholder={ej.series}
+                                            value={progreso[index]?.series || ''}
+                                            onChange={(e) => handleChange(index, 'series', e.target.value)}
+                                        />
+                                    </label>
+                                    <label>Reps:
+                                        <input
+                                            type="number"
+                                            placeholder={ej.reps}
+                                            value={progreso[index]?.reps || ''}
+                                            onChange={(e) => handleChange(index, 'reps', e.target.value)}
+                                        />
+                                    </label>
+                                    <label>Peso:
+                                        <input
+                                            type="number"
+                                            placeholder={ej.weight}
+                                            value={progreso[index]?.peso || ''}
+                                            onChange={(e) => handleChange(index, 'peso', e.target.value)}
+                                        />
+                                    </label>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <button
+                        className={styles.guardar}
+                        onClick={handleGuardar}
+                        disabled={saving}
+                    >
+                        {saving ? 'Guardando...' : 'Finalizar y Guardar Entrenamiento'}
+                    </button>
+                    {saveMessage && <p className={styles.saveMessage}>{saveMessage}</p>}
+                </>
+            )}
         </div>
     );
 };
