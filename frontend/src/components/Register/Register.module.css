@@ -1,0 +1,146 @@
+.registerContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  margin: 0 auto;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  min-height: 100vh;
+}
+
+.registerCard {
+  max-width: 600px;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.registerContent {
+  padding: 2rem;
+}
+
+/* Título */
+.registerTitle {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: #333;
+}
+
+/* Form */
+.formGroup {
+  margin-bottom: 1.2rem;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.formGroup input,
+.formGroup textarea {
+  width: 94%;
+  padding: 0.7rem;
+  border: 2px solid #ddd;
+  border-radius: 5px;
+  font-size: 0.95rem;
+  transition: 0.3s;
+}
+
+.formGroup input:focus,
+.formGroup textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* fila doble */
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+/* OBJETIVOS */
+.goalsSection {
+  margin-top: 1.5rem;
+}
+
+.goalsSection h3 {
+  margin-bottom: 0.8rem;
+  color: #333;
+}
+
+.goalInput {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.goalInput input {
+  flex: 1;
+  padding: 0.7rem;
+  border: 2px solid #ddd;
+  border-radius: 5px;
+  font-size: 0.95rem;
+  transition: 0.3s;
+}
+
+.removeBtn {
+  background: #ff6b6b;
+  color: white;
+  border: none;
+  padding: 0.4rem 0.7rem;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.removeBtn:hover {
+  background: #ff5252;
+}
+
+.addGoalBtn {
+  background: #667eea;
+  color: white;
+  border: none;
+  padding: 0.6rem;
+  border-radius: 5px;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.addGoalBtn:hover {
+  background: #5568d3;
+}
+
+/* BOTONES */
+.formActions {
+  margin-top: 1.5rem;
+}
+
+.submitBtn {
+  width: 100%;
+  padding: 0.8rem;
+  border: none;
+  background: #667eea;
+  color: white;
+  border-radius: 5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.submitBtn:hover {
+  background: #5568d3;
+  transform: translateY(-2px);
+}
+
+/* RESPONSIVE */
+@media (max-width: 600px) {
+  .formRow {
+    grid-template-columns: 1fr;
+  }
+}
