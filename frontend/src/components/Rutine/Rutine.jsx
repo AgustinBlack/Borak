@@ -17,7 +17,6 @@ const Rutine = ({ user }) => {
     const fetchRoutine = async () => {
       try {
         const response = await fetch(`http://localhost:3000/routine/${user?.id}`);
-
         if (response.status === 404) {
           setRoutineData([]);
         } else if (response.ok) {
@@ -35,9 +34,8 @@ const Rutine = ({ user }) => {
         setLoading(false);
       }
     };
-
     if (user?.id) fetchRoutine();
-  }, [user]); // <-- esta llave cierra el useEffect 1
+  }, [user]);
 
   // --- 2. EFECTO PARA CALCULAR LA RUTINA DIARIA ---
   useEffect(() => {
@@ -45,7 +43,7 @@ const Rutine = ({ user }) => {
     const foundDay = routineData.find((day) => Number(day.weekDay) === dayOfWeek);
     setDailyRoutine(foundDay || null);
     setExerciseLogs({});
-  }, [selectedDate, routineData]); // <-- esta llave cierra el useEffect 2
+  }, [selectedDate, routineData]);
 
   // --- 3. INPUT HANDLER ---
   const handleInputChange = (exerciseName, setNumber, field, value) => {
@@ -63,14 +61,11 @@ const Rutine = ({ user }) => {
 
   // --- 4. GUARDAR ENTRENAMIENTO ---
   const handleSaveWorkout = async () => {
-    if (!dailyRoutine) return;
-
     setSaving(true);
     const exercisesToSave = [];
 
     dailyRoutine.exercises.forEach((ex) => {
       const sets = exerciseLogs[ex.name];
-
       if (sets) {
         const setKeys = Object.keys(sets);
         let totalReps = 0;
@@ -78,8 +73,12 @@ const Rutine = ({ user }) => {
 
         setKeys.forEach((key) => {
           totalReps += parseInt(sets[key].reps || 0);
-          const w = parseFloat(sets[key].weight || 0);
-          if (w > maxWeight) maxWeight = w;
+          // Lógica de peso: si es usuario común usa el base, si es PF usa el del input
+          const weightToUse = (user.role === 'pf' || user.role === 'admin') 
+            ? parseFloat(sets[key].weight || ex.weight)
+            : ex.weight;
+
+          if (weightToUse > maxWeight) maxWeight = weightToUse;
         });
 
         exercisesToSave.push({
@@ -99,19 +98,18 @@ const Rutine = ({ user }) => {
     });
 
     try {
-      const res = await fetch("http://localhost:3000/routine-completed", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+      const res = await fetch('http://localhost:3000/routine-completed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: user.id,
           exercises: exercisesToSave,
-        }),
+          date: selectedDate.toISOString() 
+        })
       });
 
       if (res.ok) {
-        alert("¡Entrenamiento guardado con éxito! 🔥");
+        alert("¡Entrenamiento guardado! 🔥");
       } else {
         alert("Error al guardar.");
       }
@@ -129,22 +127,18 @@ const Rutine = ({ user }) => {
     <>
       <h2>{routineName}</h2>
 
-      {/* 🔥 CALENDARIO CON DATOS REALES */}
       <WorkoutCalendar
         routineDays={routineData}
         workoutSessions={workoutSessions}
-        routineDays={routineData}
         onDateClick={(date) => setSelectedDate(date)}
       />
 
       <div style={{ marginTop: "40px" }}>
         <h2>Rutina del día: {selectedDate.toLocaleDateString()}</h2>
-
         <div className={styles.ejercicios}>
           {dailyRoutine ? (
             <div className={styles.diaContainer}>
               <h3>{dailyRoutine.name}</h3>
-
               {dailyRoutine.exercises.map((ex, index) => (
                 <div key={index} className={styles.ejercicio}>
                   <h4>{ex.name}</h4>
@@ -162,7 +156,12 @@ const Rutine = ({ user }) => {
                       <input
                         type="number"
                         placeholder="Kg"
-                        style={{ width: '60px' }}
+                        style={{ 
+                          width: '60px',
+                          backgroundColor: user.role !== 'pf' && user.role !== 'admin' ? '#e9e9e9' : 'white'
+                        }}
+                        readOnly={user.role !== 'pf' && user.role !== 'admin'}
+                        value={exerciseLogs[ex.name]?.[serieIndex]?.weight ?? ex.weight}
                         onChange={(e) => handleInputChange(ex.name, serieIndex, "weight", e.target.value)}
                       />
                     </div>
@@ -181,7 +180,7 @@ const Rutine = ({ user }) => {
           ) : (
             <div className={styles.descanso}>
               <h3>💤 Día de descanso</h3>
-              <p>No hay entrenamiento asignado para hoy. ¡A recuperar energías!</p>
+              <p>No hay entrenamiento asignado para hoy.</p>
             </div>
           )}
         </div>
@@ -189,17 +188,14 @@ const Rutine = ({ user }) => {
 
       <div style={{ marginTop: "60px" }}>
         <h2>Rutina completa</h2>
-
         <div className={styles.ejercicios}>
           {routineData.map((day, dayIndex) => (
             <div key={dayIndex} className={styles.diaContainer}>
               <h3>{day.name}</h3>
-
               {day.exercises.map((ex, index) => (
                 <div key={index} className={styles.ejercicio}>
                   <h4>{ex.name}</h4>
-                  <p>{ex.series} sets x {ex.reps} reps</p>
-                  <p>{ex.weight} kg</p>
+                  <p>{ex.series} sets x {ex.reps} reps - {ex.weight} kg</p>
                 </div>
               ))}
             </div>

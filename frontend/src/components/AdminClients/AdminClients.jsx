@@ -53,15 +53,15 @@ const AdminClients = ({ user }) => {
     // =========================
 
     const addDay = () => {
-        setRoutineDays([
-            ...routineDays,
-            { 
-                name: `Día ${routineDays.length + 1}`, 
-                weekDay: null, // 🔥 CAMBIO CLAVE
-                exercises: [] 
-            }
-        ]);
-    };
+    setRoutineDays([
+        ...routineDays,
+        { 
+            name: `Día ${routineDays.length + 1}`, 
+            weekDay: null, // Esto permite que el select empiece en "Seleccionar día"
+            exercises: [] 
+        }
+    ]);
+};
 
     const addExerciseToDay = (dayIndex) => {
         const updated = [...routineDays];
@@ -334,32 +334,33 @@ const AdminClients = ({ user }) => {
                         </button>
 
                         {routineDays.map((day, dayIndex) => (
-                            <div key={dayIndex} className={styles.exerciseList}>
-                                <strong>{day.name}</strong>
+    <div key={dayIndex} className={styles.exerciseList}>
+        <strong>{day.name}</strong>
 
-                                {/* 🔥 SELECT NUEVO */}
-                                <select
-                                    className={styles.selectDay}
-                                    value={day.weekDay ?? ""}
-                                    onChange={(e) => {
-                                        const updated = [...routineDays];
-                                        updated[dayIndex].weekDay = Number(e.target.value);
-                                        setRoutineDays(updated);
-                                    }}
-                                >
-                                    <option value="">Seleccionar día</option>
-                                    <option value={1}>Lunes</option>
-                                    <option value={2}>Martes</option>
-                                    <option value={3}>Miércoles</option>
-                                    <option value={4}>Jueves</option>
-                                    <option value={5}>Viernes</option>
-                                    <option value={6}>Sábado</option>
-                                    <option value={0}>Domingo</option>
-                                </select>
+        {/* --- ESTO ES LO QUE AGREGAMOS --- */}
+        <select
+            className={styles.selectDay}
+            value={day.weekDay ?? ""}
+            onChange={(e) => {
+                const updated = [...routineDays];
+                updated[dayIndex].weekDay = e.target.value === "" ? null : Number(e.target.value);
+                setRoutineDays(updated);
+            }}
+        >
+            <option value="">Seleccionar día</option>
+            <option value={1}>Lunes</option>
+            <option value={2}>Martes</option>
+            <option value={3}>Miércoles</option>
+            <option value={4}>Jueves</option>
+            <option value={5}>Viernes</option>
+            <option value={6}>Sábado</option>
+            <option value={0}>Domingo</option>
+        </select>
+        {/* ---------------------------------- */}
 
-                                <button onClick={() => addExerciseToDay(dayIndex)} className={styles.btnAddExercise}>
-                                    + Ejercicio
-                                </button>
+        <button onClick={() => addExerciseToDay(dayIndex)} className={styles.btnAddExercise}>
+            + Ejercicio
+        </button>
 
                                 {day.exercises.map((ex, i) => (
                                     <div key={i} className={styles.exerciseAdder}>

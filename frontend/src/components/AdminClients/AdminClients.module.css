@@ -84,15 +84,16 @@
 }
 
 .formGroup {
-    margin-bottom: 15px;
+    margin-bottom: 20px; 
     text-align: left;
 }
 
 .formGroup label {
     display: block;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
     font-weight: bold;
     color: #333;
+    font-size: 0.95rem;
 }
 
 .formGroup input, 
@@ -147,14 +148,27 @@
     z-index: 1000;
 }
 
+/* Para que el modal sea scrolleable si la rutina es muy larga */
 .modalContentLarge {
     background: white;
-    padding: 2rem;
+    padding: 30px; /* Aumentamos un poco el padding general */
+    padding-top: 40px; /* Refuerzo extra arriba para el título */
     border-radius: 8px;
-    width: 600px; /* Más ancho para que entren los ejercicios */
+    width: 600px;
     max-width: 90%;
+    max-height: 85vh; /* Bajamos un poco de 90 a 85 para que no toque los bordes de la pantalla */
+    overflow-y: auto;
+    position: relative;
     box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     text-align: left;
+}
+
+.modalContentLarge h2 {
+    margin-top: 0;
+    margin-bottom: 25px;
+    color: #333;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
 }
 
 .formRow {
@@ -212,13 +226,21 @@
 }
 
 .exerciseList {
-    list-style: none;
-    padding: 0;
-    margin: 0 0 20px 0;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    max-height: 200px;
-    overflow-y: auto;
+    background-color: #fcfcfc;
+    padding: 15px;
+    margin-bottom: 25px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    max-height: none; /* Quitamos el scroll interno para que sea más cómodo */
+    overflow-y: visible;
+}
+
+.exerciseList strong {
+    display: block;
+    font-size: 1.1rem;
+    color: #2196F3;
+    margin-bottom: 10px;
+    text-transform: uppercase;
 }
 
 .exerciseList li {
@@ -233,6 +255,12 @@
     border-bottom: none;
 }
 
+/* Ajuste para que el botón de "+ Ejercicio" no quede pegado al selector */
+.exerciseList .btnAddExercise {
+    margin-bottom: 15px;
+    display: inline-block;
+}
+
 .btnRemove {
     background-color: #ff4d4d;
     color: white;
@@ -241,4 +269,21 @@
     cursor: pointer;
     padding: 2px 8px;
     font-weight: bold;
+}
+
+.selectDay {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #fff;
+    font-size: 0.9rem;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.selectDay:focus {
+    border-color: #2196F3;
 }

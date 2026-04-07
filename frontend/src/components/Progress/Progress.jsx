@@ -16,30 +16,51 @@ const Progress = ({ user }) => {
   const [selectedEjercicio, setSelectedEjercicio] = useState(null);
 
   useEffect(() => {
-
     const fetchProgress = async () => {
-
       try {
-
         const res = await fetch(`http://localhost:3000/progress/${user.id}`);
         const data = await res.json();
 
-        setEjercicios(data);
+        const dataAgrupada = data.map(ejercicio => {
+          const historicoSimplificado = [];
+          const visitasPorFecha = {};
 
-        if (data.length > 0) {
-          setSelectedEjercicio(data[0]);
+          ejercicio.historico.forEach(log => {
+            const fecha = log.semana; 
+
+            if (!visitasPorFecha[fecha]) {
+              visitasPorFecha[fecha] = {
+                semana: fecha,
+                peso: Number(log.peso),
+                repeticiones: Number(log.repeticiones)
+              };
+              historicoSimplificado.push(visitasPorFecha[fecha]);
+            } else {
+              // 🔥 CORRECCIÓN: Si el peso de esta serie es mayor al que ya guardamos,
+              // actualizamos tanto el peso como las repeticiones de ESA serie específica.
+              if (Number(log.peso) > visitasPorFecha[fecha].peso) {
+                visitasPorFecha[fecha].peso = Number(log.peso);
+                visitasPorFecha[fecha].repeticiones = Number(log.repeticiones);
+              }
+            }
+          });
+
+          return {
+            ...ejercicio,
+            historico: historicoSimplificado
+          };
+        });
+
+        setEjercicios(dataAgrupada);
+        if (dataAgrupada.length > 0) {
+          setSelectedEjercicio(dataAgrupada[0]);
         }
-
       } catch (error) {
         console.error("Error cargando progreso:", error);
       }
-
     };
 
-    if (user?.id) {
-      fetchProgress();
-    }
-
+    if (user?.id) fetchProgress();
   }, [user]);
 
   if (!selectedEjercicio || !selectedEjercicio.historico) {

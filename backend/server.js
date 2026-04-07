@@ -589,25 +589,25 @@ app.get("/profile/:userId", async (req, res) => {
    GUARDAR PROGRESO REAL (Neon)
 ================================ */
 app.post("/routine-completed", async (req, res) => {
-  const { userId, exercises } = req.body; // 'exercises' es el array que enviamos desde el Front
+  // 1. Recibimos 'date' desde el body
+  const { userId, exercises, date } = req.body; 
 
   try {
-    // Usamos una transacción o un loop para insertar cada ejercicio
     const queries = exercises.map((ex) => {
       return pool.query(
         `INSERT INTO workout_logs 
-         (user_id, exercise_name, series_done, reps_done, weight_kg) 
-         VALUES ($1, $2, $3, $4, $5)`,
-        [userId, ex.exercise_name, ex.series, ex.reps, ex.weight_kg]
+          (user_id, exercise_name, series_done, reps_done, weight_kg, date_completed) 
+          VALUES ($1, $2, $3, $4, $5, $6)`, // 2. Agregamos la columna de fecha
+        [userId, ex.exercise_name, ex.series, ex.reps, ex.weight_kg, date]
       );
     });
 
     await Promise.all(queries);
-    res.status(200).json({ message: "¡Progreso guardado en Neon correctamente!" });
-
+    res.status(200).json({ message: "¡Progreso guardado!" });
+    
   } catch (err) {
-    console.error("ERROR AL GUARDAR EN WORKOUT_LOGS:", err);
-    res.status(500).json({ error: "No se pudo guardar el progreso" });
+    console.error(err);
+    res.status(500).json({ error: "No se pudo guardar" });
   }
 });
 
@@ -626,21 +626,20 @@ app.get('/progress/:userId', async (req, res) => {
         const ejerciciosMap = {};
 
         result.rows.forEach((log) => {
-          const nombre = log.exercise_name;
+  const nombre = log.exercise_name;
+  // Convertimos a formato local para que Recharts lo lea fácil
+  const fechaLocal = new Date(log.date_completed).toLocaleDateString(); 
 
-          if (!ejerciciosMap[nombre]) {
-            ejerciciosMap[nombre] = {
-              nombre: nombre,
-              historico: []
-            };
-          }
+  if (!ejerciciosMap[nombre]) {
+    ejerciciosMap[nombre] = { nombre: nombre, historico: [] };
+  }
 
-          ejerciciosMap[nombre].historico.push({
-            semana: new Date(log.date_completed).toLocaleDateString(), // Usamos la fecha como etiqueta
-            peso: log.weight_kg,
-            repeticiones: log.reps_done
-          });
-        });
+  ejerciciosMap[nombre].historico.push({
+    semana: fechaLocal, 
+    peso: log.weight_kg,
+    repeticiones: log.reps_done
+  });
+});
 
         res.json(Object.values(ejerciciosMap));
       } catch (err) {
