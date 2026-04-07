@@ -62,26 +62,61 @@ app.get("/users-with-routines", async (req, res) => {
 });
 
 /* ================================
-   REGISTER
+   REGISTER (ACTUALIZADO 🔥)
 ================================ */
 app.post("/register", async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const {
+      name,
+      email,
+      password,
+      weight,
+      height,
+      experience,
+      goals
+    } = req.body;
 
-    const userRole = role || "cliente";
-
+    // 1. Crear usuario
     const newUser = await pool.query(
-      `INSERT INTO users (name, email, password, role) 
-       VALUES ($1, $2, $3, $4) 
-       RETURNING id, name, email, role`,
-      [name, email, password, userRole]
+      `INSERT INTO users 
+      (name, email, password, weight, height, experience) 
+      VALUES ($1, $2, $3, $4, $5, $6) 
+      RETURNING id, name, email`,
+      [name, email, password, weight, height, experience]
     );
 
-    res.json(newUser.rows[0]);
+    const user = newUser.rows[0];
+
+    // 2. Guardar objetivos
+    if (goals && goals.length > 0) {
+      const queries = goals.map(goal =>
+        pool.query(
+          `INSERT INTO goals (user_id, goal)
+           VALUES ($1, $2)`,
+          [user.id, goal]
+        )
+      );
+
+      await Promise.all(queries);
+    }
+
+    res.status(201).json({
+      ...user,
+      goals
+    });
 
   } catch (error) {
-    console.error(error);
-    res.status(500).send("Error al registrar usuario");
+    console.error("ERROR REGISTER:", error);
+
+    if (error.code === "23505") {
+      return res.status(400).json({
+        message: "El email ya está registrado"
+      });
+    }
+
+    res.status(500).json({
+      message: "Error al registrar usuario"
+    });
   }
 });
 
@@ -160,13 +195,13 @@ app.post("/assign-routine", async (req, res) => {
     // 2. Crear días y ejercicios
     for (const day of days) {
 
-     // Dentro del bucle de days:
-const dayResult = await pool.query(
-  `INSERT INTO routine_days (routine_id, name, week_day) -- Agregamos week_day
+      // Dentro del bucle de days:
+      const dayResult = await pool.query(
+        `INSERT INTO routine_days (routine_id, name, week_day) -- Agregamos week_day
    VALUES ($1, $2, $3)
    RETURNING id`,
-  [routineId, day.name, day.weekDay] // Usamos el valor que viene del AdminProfiles.jsx
-);
+        [routineId, day.name, day.weekDay] // Usamos el valor que viene del AdminProfiles.jsx
+      );
 
       const dayId = dayResult.rows[0].id;
 
@@ -260,35 +295,45 @@ app.put("/update-routine/:userId", async (req, res) => {
 /* ================================
    PERFIL
 ================================ */
+
 app.get("/profile/:userId", async (req, res) => {
   const { userId } = req.params;
 
   try {
-    const result = await pool.query(
-      `SELECT id, name, email FROM users WHERE id = $1`,
+    // 1. Usuario
+    const userRes = await pool.query(
+      `SELECT id, name, email, weight, height, experience
+       FROM users WHERE id = $1`,
       [userId]
     );
 
-    if (result.rows.length === 0) {
+    if (userRes.rows.length === 0) {
       return res.status(404).json({ error: "Usuario no encontrado" });
     }
 
-    const user = result.rows[0];
+    const user = userRes.rows[0];
 
-    const profile = {
+    // 2. Goals
+    const goalsRes = await pool.query(
+      `SELECT goal FROM goals WHERE user_id = $1`,
+      [userId]
+    );
+
+    const goals = goalsRes.rows.map(g => g.goal);
+
+    res.json({
       id: user.id,
       nombre: user.name,
       email: user.email,
-      peso: 75,
-      altura: 180,
-      objetivos: ["Ganar masa muscular", "Mejorar resistencia"],
+      peso: user.weight,
+      altura: user.height,
+      experiencia: user.experience,
+      objetivos: goals,
       avatar: `https://ui-avatars.com/api/?name=${user.name}`
-    };
-
-    res.json(profile);
+    });
 
   } catch (error) {
-    console.error("Error obteniendo perfil:", error);
+    console.error("Error perfil:", error);
     res.status(500).json({ error: "Error del servidor" });
   }
 });
@@ -325,42 +370,114 @@ app.post("/routine-completed", async (req, res) => {
 app.get('/progress/:userId', async (req, res) => {
   const { userId } = req.params;
   try {
-        const result = await pool.query(
-          'SELECT exercise_name, reps_done, weight_kg, date_completed FROM workout_logs WHERE user_id = $1 ORDER BY date_completed ASC',
-          [userId]
-        );
+    const result = await pool.query(
+      'SELECT exercise_name, reps_done, weight_kg, date_completed FROM workout_logs WHERE user_id = $1 ORDER BY date_completed ASC',
+      [userId]
+    );
 
-        // Agrupamos los datos por nombre de ejercicio
-        const ejerciciosMap = {};
+    // Agrupamos los datos por nombre de ejercicio
+    const ejerciciosMap = {};
 
-        result.rows.forEach((log) => {
-          const nombre = log.exercise_name;
+    result.rows.forEach((log) => {
+      const nombre = log.exercise_name;
 
-          if (!ejerciciosMap[nombre]) {
-            ejerciciosMap[nombre] = {
-              nombre: nombre,
-              historico: []
-            };
-          }
-
-          ejerciciosMap[nombre].historico.push({
-            semana: new Date(log.date_completed).toLocaleDateString(), // Usamos la fecha como etiqueta
-            peso: log.weight_kg,
-            repeticiones: log.reps_done
-          });
-        });
-
-        res.json(Object.values(ejerciciosMap));
-      } catch (err) {
-        console.error(err);
-        res.status(500).send("Error al obtener progresos");
+      if (!ejerciciosMap[nombre]) {
+        ejerciciosMap[nombre] = {
+          nombre: nombre,
+          historico: []
+        };
       }
+
+      ejerciciosMap[nombre].historico.push({
+        semana: new Date(log.date_completed).toLocaleDateString(), // Usamos la fecha como etiqueta
+        peso: log.weight_kg,
+        repeticiones: log.reps_done
+      });
     });
 
+    res.json(Object.values(ejerciciosMap));
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error al obtener progresos");
+  }
+});
 
-    /* ================================
-       SERVER
-    ================================ */
-    app.listen(3000, () => {
-      console.log("Servidor corriendo en puerto 3000"); 
+/* ================================
+UPDATE PROFILE 🔥
+================================ */
+app.put("/profile/:userId", async (req, res) => {
+  const { userId } = req.params;
+
+  const {
+    nombre,
+    email,
+    peso,
+    altura,
+    experiencia,
+    objetivos
+  } = req.body;
+
+  try {
+
+    // 1. Actualizar usuario
+    const updatedUser = await pool.query(
+      `UPDATE users
+       SET name = $1,
+           email = $2,
+           weight = $3,
+           height = $4,
+           experience = $5
+       WHERE id = $6
+       RETURNING id, name, email, weight, height, experience`,
+      [nombre, email, peso, altura, experiencia, userId]
+    );
+
+    // 2. Borrar objetivos anteriores
+    await pool.query(
+      `DELETE FROM goals WHERE user_id = $1`,
+      [userId]
+    );
+
+    // 3. Insertar nuevos objetivos
+    if (objetivos && objetivos.length > 0) {
+      const queries = objetivos.map(obj =>
+        pool.query(
+          `INSERT INTO goals (user_id, goal)
+           VALUES ($1, $2)`,
+          [userId, obj]
+        )
+      );
+
+      await Promise.all(queries);
+    }
+
+    const user = updatedUser.rows[0];
+
+    // 4. Respuesta final
+    res.json({
+      id: user.id,
+      nombre: user.name,
+      email: user.email,
+      peso: user.weight,
+      altura: user.height,
+      experiencia: user.experience,
+      objetivos,
+      avatar: `https://ui-avatars.com/api/?name=${user.name}`
     });
+
+  } catch (error) {
+    console.error("ERROR UPDATE PROFILE:", error);
+
+    res.status(500).json({
+      message: "Error al actualizar perfil"
+    });
+  }
+});
+
+
+/* ================================
+   SERVER
+================================ */
+app.listen(3000, () => {
+  console.log("Servidor corriendo en puerto 3000");
+});

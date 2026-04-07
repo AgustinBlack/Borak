@@ -35,26 +35,14 @@ function App() {
 
   return (
     <BrowserRouter>
-      {/* 1. El Nav ya recibe todo lo necesario. 
-          Asegúrate de que dentro de Nav.jsx estés pasando estas props 
-          al componente <HamburgerMenu /> 
-      */}
       <Nav user={user} logout={handleLogout} isAdmin={isAdmin} />
-
       <Routes>
         <Route path="/" element={<Home user={user} />} />
-        
         <Route path="/seccion/Rutina" element={<Rutine user={user} />} />
-        
-        {/* 2. CAMBIO AQUÍ: Pasamos el user a Objetives */}
-        <Route path="/seccion/Objetivos" element={<Objetives user={user} />} />
-        
-        <Route path='/seccion/Progresos' element={<Progress user={user} />} />
-        
-        <Route path="/seccion/Perfil" element={<Profile user={user} />} />
-        
+        <Route path="/seccion/Objetivos" element={<Objetives user={user} />} />        
+        <Route path='/seccion/Progresos' element={<Progress user={user} />} />        
+        <Route path="/seccion/Perfil" element={<Profile user={user} />} />        
         <Route path="/seccion/Us" element={<Us />} />
-
         <Route
           path="/seccion/AdministrarPerfiles"
           element={isAdmin ? <AdminClients user={user} /> : <Navigate to="/" />}

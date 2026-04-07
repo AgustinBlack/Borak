@@ -10,9 +10,7 @@ const Profile = ({ user }) => {
   useEffect(() => {
 
     const fetchProfile = async () => {
-
       try {
-
         const res = await fetch(`http://localhost:3000/profile/${user.id}`);
         const data = await res.json();
 
@@ -22,7 +20,6 @@ const Profile = ({ user }) => {
       } catch (error) {
         console.error("Error cargando perfil:", error);
       }
-
     };
 
     if (user?.id) {
@@ -47,12 +44,12 @@ const Profile = ({ user }) => {
   };
 
   const handleObjetivoChange = (index, value) => {
-    const updatedObjetivos = [...formData.objetivos];
-    updatedObjetivos[index] = value;
+    const updated = [...formData.objetivos];
+    updated[index] = value;
 
     setFormData({
       ...formData,
-      objetivos: updatedObjetivos
+      objetivos: updated
     });
   };
 
@@ -64,17 +61,33 @@ const Profile = ({ user }) => {
   };
 
   const handleRemoveObjetivo = (index) => {
-    const updatedObjetivos = formData.objetivos.filter((_, i) => i !== index);
+    const updated = formData.objetivos.filter((_, i) => i !== index);
 
     setFormData({
       ...formData,
-      objetivos: updatedObjetivos
+      objetivos: updated
     });
   };
 
-  const handleSave = () => {
-    setProfile(formData);
-    setIsEditing(false);
+  // 🔥 AHORA GUARDA EN BACKEND
+  const handleSave = async () => {
+    try {
+      const res = await fetch(`http://localhost:3000/profile/${user.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(formData)
+      });
+
+      const data = await res.json();
+
+      setProfile(data);
+      setIsEditing(false);
+
+    } catch (error) {
+      console.error("Error guardando:", error);
+    }
   };
 
   const handleCancel = () => {
@@ -91,16 +104,16 @@ const Profile = ({ user }) => {
     <div className={styles.profileContainer}>
       <div className={styles.profileCard}>
 
-        {/* Header */}
+        {/* HEADER */}
         <div className={styles.profileHeader}>
           <img 
             src={profile.avatar} 
-            alt="Avatar del usuario" 
+            alt="Avatar" 
             className={styles.avatar}
           />
 
           <div className={styles.headerInfo}>
-            <h1>{profile.nombre} {profile.apellido}</h1>
+            <h1>{profile.nombre}</h1>
             <p>{profile.email}</p>
           </div>
 
@@ -115,11 +128,9 @@ const Profile = ({ user }) => {
           </button>
         </div>
 
-        {/* Contenido */}
         <div className={styles.profileContent}>
           {isEditing ? (
 
-            // MODO EDICIÓN
             <form className={styles.editForm}>
 
               <div className={styles.formGroup}>
@@ -128,16 +139,6 @@ const Profile = ({ user }) => {
                   type="text"
                   name="nombre"
                   value={formData.nombre}
-                  onChange={handleInputChange}
-                />
-              </div>
-
-              <div className={styles.formGroup}>
-                <label>Apellido</label>
-                <input
-                  type="text"
-                  name="apellido"
-                  value={formData.apellido}
                   onChange={handleInputChange}
                 />
               </div>
@@ -154,57 +155,63 @@ const Profile = ({ user }) => {
 
               <div className={styles.formRow}>
                 <div className={styles.formGroup}>
-                  <label>Peso (kg)</label>
+                  <label>Peso</label>
                   <input
                     type="number"
                     name="peso"
                     value={formData.peso}
                     onChange={handleInputChange}
-                    step="0.1"
                   />
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label>Altura (cm)</label>
+                  <label>Altura</label>
                   <input
                     type="number"
                     name="altura"
                     value={formData.altura}
                     onChange={handleInputChange}
-                    step="0.1"
                   />
                 </div>
               </div>
 
               <div className={styles.formGroup}>
+                <label>Experiencia</label>
+                <input
+                  type="text"
+                  name="experiencia"
+                  value={formData.experiencia}
+                  onChange={handleInputChange}
+                />
+              </div>
+
+              {/* OBJETIVOS */}
+              <div className={styles.formGroup}>
                 <label>Objetivos</label>
 
                 <div className={styles.objetivosList}>
-                  {formData.objetivos.map((objetivo, index) => (
-                    <div key={index} className={styles.objetivoInput}>
-
+                  {formData.objetivos.map((obj, i) => (
+                    <div key={i} className={styles.objetivoInput}>
                       <input
                         type="text"
-                        value={objetivo}
-                        onChange={(e) => handleObjetivoChange(index, e.target.value)}
-                        placeholder={`Objetivo ${index + 1}`}
+                        value={obj}
+                        onChange={(e) => handleObjetivoChange(i, e.target.value)}
                       />
 
                       {formData.objetivos.length > 1 && (
                         <button
                           type="button"
                           className={styles.removeBtn}
-                          onClick={() => handleRemoveObjetivo(index)}
+                          onClick={() => handleRemoveObjetivo(i)}
                         >
                           ✕
                         </button>
                       )}
-
                     </div>
                   ))}
                 </div>
 
-                <button 
+                <button
                   type="button"
                   className={styles.addObjetivoBtn}
                   onClick={handleAddObjetivo}
@@ -219,7 +226,7 @@ const Profile = ({ user }) => {
                   className={styles.saveBtn}
                   onClick={handleSave}
                 >
-                  Guardar cambios
+                  Guardar
                 </button>
 
                 <button
@@ -235,10 +242,9 @@ const Profile = ({ user }) => {
 
           ) : (
 
-            // MODO VISUALIZACIÓN
             <>
               <div className={styles.infoSection}>
-                <h2>Información Personal</h2>
+                <h2>Información</h2>
 
                 <div className={styles.infoGrid}>
                   <div className={styles.infoCard}>
@@ -259,13 +265,13 @@ const Profile = ({ user }) => {
               </div>
 
               <div className={styles.objetivosSection}>
-                <h2>Tus Objetivos</h2>
+                <h2>Objetivos</h2>
 
                 <ul className={styles.objetivosList}>
-                  {profile.objetivos.map((objetivo, index) => (
-                    <li key={index} className={styles.objetivoItem}>
+                  {profile.objetivos.map((obj, i) => (
+                    <li key={i} className={styles.objetivoItem}>
                       <span className={styles.bullet}>✓</span>
-                      {objetivo}
+                      {obj}
                     </li>
                   ))}
                 </ul>
