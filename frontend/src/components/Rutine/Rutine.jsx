@@ -133,7 +133,6 @@ const Rutine = ({ user }) => {
       <WorkoutCalendar
         routineDays={routineData}
         workoutSessions={workoutSessions}
-        routineDays={routineData}
         onDateClick={(date) => setSelectedDate(date)}
       />
 
