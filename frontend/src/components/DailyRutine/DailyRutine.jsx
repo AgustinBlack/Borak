@@ -4,16 +4,32 @@ import styles from './DailyRutine.module.css';
 
 const DailyRutine = ({ user }) => {
     // 1. ESTADOS
-    const [fullRoutine, setFullRoutine] = useState(null); // Datos de la DB
+    const [fullRoutine, setFullRoutine] = useState(null);
     const [selectedDate, setSelectedDate] = useState(new Date());
-    const [rutinaDelDia, setRutinaDelDia] = useState(null); // Día específico filtrado
+    const [rutinaDelDia, setRutinaDelDia] = useState(null);
     const [progreso, setProgreso] = useState({});
-    
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [saveMessage, setSaveMessage] = useState('');
 
-    // 2. CARGA INICIAL
+    // 2. LÓGICA DE FILTRADO — va ANTES del useEffect que la usa
+    const filtrarPorDia = (routine, date) => {
+        const dayOfWeek = date.getDay();
+        const dayMatch = routine.days.find(d => Number(d.weekDay) === dayOfWeek); // 🔥 fix cast
+
+        if (dayMatch) {
+            setRutinaDelDia(dayMatch);
+            const initialProgreso = {};
+            dayMatch.exercises.forEach((_, index) => {
+                initialProgreso[index] = { series: '', reps: '', peso: '' };
+            });
+            setProgreso(initialProgreso);
+        } else {
+            setRutinaDelDia(null);
+        }
+    }; // <-- cierra filtrarPorDia
+
+    // 3. CARGA INICIAL
     useEffect(() => {
         const fetchRoutine = async () => {
             try {
@@ -32,25 +48,7 @@ const DailyRutine = ({ user }) => {
         };
 
         if (user?.id) fetchRoutine();
-    }, [user.id]);
-
-    // 3. LÓGICA DE FILTRADO
-    const filtrarPorDia = (routine, date) => {
-        const dayOfWeek = date.getDay(); // 0 (Dom) a 6 (Sab)
-        const dayMatch = routine.days.find(d => d.weekDay === dayOfWeek);
-        
-        if (dayMatch) {
-            setRutinaDelDia(dayMatch);
-            // Inicializar inputs vacíos para este día
-            const initialProgreso = {};
-            dayMatch.exercises.forEach((_, index) => {
-                initialProgreso[index] = { series: '', reps: '', peso: '' };
-            });
-            setProgreso(initialProgreso);
-        } else {
-            setRutinaDelDia(null);
-        }
-    };
+    }, [user.id]); // <-- cierra useEffect
 
     // 4. MANEJADORES DE EVENTOS
     const handleDateClick = (date) => {
@@ -116,7 +114,7 @@ const DailyRutine = ({ user }) => {
                 <WorkoutCalendar 
                     routineDays={fullRoutine?.days || []} 
                     onDateClick={handleDateClick}
-                    workoutSessions={[]} // Aquí irían los logs históricos
+                    workoutSessions={[]}
                 />
             </div>
 

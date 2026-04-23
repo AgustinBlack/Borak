@@ -1,289 +1,433 @@
+/* =====================
+   BASE / MOBILE FIRST
+   ===================== */
+
 .adminContainer {
-    padding: 20px;
-    max-width: 1000px;
-    margin: auto;
+    padding: 1rem;
+    padding-top: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.header {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.header h1 {
+    font-size: 1.4rem;
+    margin: 0;
+}
+
+.btnCreate {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.btnCreate:hover {
+    background-color: #218838;
+}
+
+/* =====================
+   PENDIENTES
+   ===================== */
+
+.pendingSection {
+    background-color: #fff8e1;
+    border: 1px solid #ffc107;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.pendingSection h2 {
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
+}
+
+.pendingRow {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #ffeeba;
+}
+
+.pendingRow:last-child {
+    border-bottom: none;
+}
+
+.pendingRow p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.actionButtons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btnApprove {
+    padding: 0.4rem 0.9rem;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.btnApprove:hover { background-color: #218838; }
+
+.btnReject {
+    padding: 0.4rem 0.9rem;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.btnReject:hover { background-color: #c82333; }
+
+/* =====================
+   BUSCADOR
+   ===================== */
+
+.searchBar {
+    margin-bottom: 1rem;
 }
 
 .searchBar input {
     width: 100%;
-    padding: 10px;
-    margin-bottom: 20px;
-    border-radius: 5px;
+    padding: 0.65rem 1rem;
     border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+    box-sizing: border-box;
 }
+
+/* =====================
+   TABLA — responsive con data-label
+   ===================== */
 
 .clientsTable {
     width: 100%;
     border-collapse: collapse;
 }
 
-.clientsTable th, .clientsTable td {
+/* En mobile la tabla se convierte en tarjetas */
+.clientsTable thead {
+    display: none;
+}
+
+.clientsTable tr {
+    display: block;
     border: 1px solid #ddd;
-    padding: 12px;
-    text-align: left;
-}
-
-.clientsTable th {
-    background-color: #2196F3;
-    color: white;
-}
-
-.btnEdit, .btnAssign {
-    margin-right: 5px;
-    padding: 5px 10px;
-    cursor: pointer;
-    border: none;
-    border-radius: 3px;
-}
-
-.modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.modalContent {
-    background: white;
-    padding: 2rem;
     border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    text-align: center;
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background: #fff;
 }
 
-.btnEdit { background-color: #eee; }
-.btnAssign { background-color: #4CAF50; color: white; }
-
-/* --- NUEVOS ESTILOS PARA CREAR RUTINA --- */
-
-.header {
+.clientsTable td {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    padding: 0.4rem 0;
+    font-size: 0.9rem;
+    border-bottom: 1px solid #f0f0f0;
 }
 
-.btnCreate {
-    background-color: #ff9800; /* Un color naranja para que resalte */
+.clientsTable td:last-child {
+    border-bottom: none;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+.clientsTable td::before {
+    content: attr(data-label);
+    font-weight: bold;
+    color: #555;
+    margin-right: 0.5rem;
+    flex-shrink: 0;
+}
+
+.btnAssign {
+    padding: 0.4rem 0.8rem;
+    background-color: #007bff;
     color: white;
-    padding: 10px 15px;
     border: none;
     border-radius: 5px;
-    font-weight: bold;
     cursor: pointer;
-    transition: background-color 0.3s;
+    font-size: 0.8rem;
 }
 
-.btnCreate:hover {
-    background-color: #e68a00;
-}
+.btnAssign:hover { background-color: #0056b3; }
 
-.formGroup {
-    margin-bottom: 20px; 
-    text-align: left;
-}
-
-.formGroup label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: bold;
-    color: #333;
-    font-size: 0.95rem;
-}
-
-.formGroup input, 
-.formGroup textarea {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
+.btnEdit {
+    padding: 0.4rem 0.8rem;
+    background-color: #fd7e14;
+    color: white;
+    border: none;
     border-radius: 5px;
-    font-family: inherit;
-}
-
-.formGroup textarea {
-    resize: vertical;
-    min-height: 80px;
-}
-
-.modalActions {
-    display: flex;
-    justify-content: space-around;
-    margin-top: 20px;
-}
-
-.btnCancel {
-    background-color: #f44336;
-    color: white;
-    padding: 8px 15px;
-    border: none;
-    border-radius: 3px;
     cursor: pointer;
+    font-size: 0.8rem;
 }
 
-.btnSave {
-    background-color: #4CAF50;
-    color: white;
-    padding: 8px 15px;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-}
+.btnEdit:hover { background-color: #e8600a; }
 
-/* --- ESTILOS MODAL CUSTOM --- */
+/* =====================
+   MODALES
+   ===================== */
+
 .modalCustom {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.7);
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
     display: flex;
+    align-items: flex-start;
     justify-content: center;
-    align-items: center;
     z-index: 1000;
+    padding: 1rem;
+    overflow-y: auto;
 }
 
-/* Para que el modal sea scrolleable si la rutina es muy larga */
 .modalContentLarge {
     background: white;
-    padding: 30px; /* Aumentamos un poco el padding general */
-    padding-top: 40px; /* Refuerzo extra arriba para el título */
-    border-radius: 8px;
-    width: 600px;
-    max-width: 90%;
-    max-height: 85vh; /* Bajamos un poco de 90 a 85 para que no toque los bordes de la pantalla */
-    overflow-y: auto;
-    position: relative;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    text-align: left;
+    border-radius: 10px;
+    padding: 1.5rem;
+    width: 100%;
+    max-width: 700px;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 
 .modalContentLarge h2 {
-    margin-top: 0;
-    margin-bottom: 25px;
-    color: #333;
-    border-bottom: 2px solid #eee;
-    padding-bottom: 10px;
+    margin: 0;
+    font-size: 1.3rem;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.formGroup label {
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: #444;
+}
+
+.formGroup input,
+.formGroup select {
+    padding: 0.6rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .formRow {
     display: flex;
-    gap: 15px;
+    flex-direction: column;
+    gap: 0.75rem;
 }
 
-.formRow .formGroup {
-    flex: 1;
+.exerciseList {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    background: #f9f9f9;
 }
 
-.formGroup select {
-    width: 100%;
-    padding: 10px;
+.selectDay {
+    padding: 0.6rem;
     border: 1px solid #ccc;
-    border-radius: 5px;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-.divider {
-    margin: 20px 0;
-    border: 0;
-    border-top: 1px solid #eee;
-}
-
+/* Fila de ejercicio — apilada en mobile */
 .exerciseAdder {
     display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 0.5rem;
     align-items: center;
 }
 
 .exerciseAdder select {
-    flex: 2;
-    padding: 8px;
+    flex: 1 1 100%;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 0.9rem;
 }
 
 .exerciseAdder input {
-    flex: 1;
-    padding: 8px;
-    width: 60px;
+    flex: 1 1 60px;
+    max-width: 80px;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 0.9rem;
 }
 
 .btnAddExercise {
-    background-color: #2196F3;
+    padding: 0.5rem 1rem;
+    background-color: #17a2b8;
     color: white;
     border: none;
-    padding: 9px 15px;
-    border-radius: 4px;
+    border-radius: 5px;
     cursor: pointer;
-    font-weight: bold;
+    font-size: 0.9rem;
+    align-self: flex-start;
 }
 
-.btnAddExercise:hover {
-    background-color: #0b7dda;
-}
-
-.exerciseList {
-    background-color: #fcfcfc;
-    padding: 15px;
-    margin-bottom: 25px;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    max-height: none; /* Quitamos el scroll interno para que sea más cómodo */
-    overflow-y: visible;
-}
-
-.exerciseList strong {
-    display: block;
-    font-size: 1.1rem;
-    color: #2196F3;
-    margin-bottom: 10px;
-    text-transform: uppercase;
-}
-
-.exerciseList li {
-    display: flex;
-    justify-content: space-between;
-    padding: 10px;
-    border-bottom: 1px solid #eee;
-    background-color: #f9f9f9;
-}
-
-.exerciseList li:last-child {
-    border-bottom: none;
-}
-
-/* Ajuste para que el botón de "+ Ejercicio" no quede pegado al selector */
-.exerciseList .btnAddExercise {
-    margin-bottom: 15px;
-    display: inline-block;
-}
+.btnAddExercise:hover { background-color: #138496; }
 
 .btnRemove {
-    background-color: #ff4d4d;
+    padding: 0.4rem 0.7rem;
+    background-color: #dc3545;
     color: white;
     border: none;
-    border-radius: 3px;
-    cursor: pointer;
-    padding: 2px 8px;
-    font-weight: bold;
-}
-
-.selectDay {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 15px;
-    border: 1px solid #ccc;
     border-radius: 5px;
-    background-color: #fff;
-    font-size: 0.9rem;
     cursor: pointer;
-    outline: none;
-    transition: border-color 0.2s;
+    font-size: 0.85rem;
 }
 
-.selectDay:focus {
-    border-color: #2196F3;
+.btnRemove:hover { background-color: #c82333; }
+
+.modalActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.btnCancel {
+    padding: 0.6rem 1.2rem;
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.btnCancel:hover { background-color: #5a6268; }
+
+.btnSave {
+    padding: 0.6rem 1.2rem;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.btnSave:hover { background-color: #218838; }
+
+.errorMsg {
+    color: red;
+    text-align: center;
+    padding: 2rem;
+}
+
+/* =====================
+   TABLET: 600px+
+   ===================== */
+
+@media (min-width: 600px) {
+    .header {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .btnCreate {
+        width: auto;
+    }
+
+    .pendingRow {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .formRow {
+        flex-direction: row;
+        align-items: flex-end;
+    }
+
+    .exerciseAdder select {
+        flex: 2 1 150px;
+    }
+}
+
+/* =====================
+   DESKTOP: 900px+
+   ===================== */
+
+@media (min-width: 900px) {
+
+    /* La tabla vuelve a ser tabla normal */
+    .clientsTable thead {
+        display: table-header-group;
+    }
+
+    .clientsTable tr {
+        display: table-row;
+        border: none;
+        border-radius: 0;
+        padding: 0;
+        margin: 0;
+    }
+
+    .clientsTable td {
+        display: table-cell;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #eee;
+        font-size: 0.95rem;
+    }
+
+    .clientsTable td::before {
+        display: none;
+    }
+
+    .clientsTable th {
+        padding: 0.75rem 1rem;
+        background-color: #f8f9fa;
+        text-align: left;
+        border-bottom: 2px solid #dee2e6;
+        font-size: 0.95rem;
+    }
+
+    .clientsTable tbody tr:hover {
+        background-color: #f5f5f5;
+    }
+
+    .clientsTable td:last-child {
+        display: table-cell;
+        justify-content: unset;
+    }
 }

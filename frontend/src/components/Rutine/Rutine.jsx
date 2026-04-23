@@ -145,25 +145,25 @@ const Rutine = ({ user }) => {
                   <p>Objetivo: {ex.series} series x {ex.reps} reps ({ex.weight}kg)</p>
 
                   {Array.from({ length: ex.series }).map((_, serieIndex) => (
-                    <div key={serieIndex} style={{ display: 'flex', gap: '10px', marginTop: '5px' }}>
+                    <div key={serieIndex} className={styles.setRow}>
                       <span>Set {serieIndex + 1}:</span>
                       <input
-                        type="number"
-                        placeholder="Reps"
-                        style={{ width: '60px' }}
-                        onChange={(e) => handleInputChange(ex.name, serieIndex, "reps", e.target.value)}
-                      />
-                      <input
-                        type="number"
-                        placeholder="Kg"
-                        style={{ 
-                          width: '60px',
-                          backgroundColor: user.role !== 'pf' && user.role !== 'admin' ? '#e9e9e9' : 'white'
-                        }}
-                        readOnly={user.role !== 'pf' && user.role !== 'admin'}
-                        value={exerciseLogs[ex.name]?.[serieIndex]?.weight ?? ex.weight}
-                        onChange={(e) => handleInputChange(ex.name, serieIndex, "weight", e.target.value)}
-                      />
+  type="number"
+  placeholder="Reps"
+  // ❌ sacar: style={{ width: '60px' }}
+  onChange={(e) => handleInputChange(ex.name, serieIndex, "reps", e.target.value)}
+/>
+<input
+  type="number"
+  placeholder="Kg"
+  style={{ 
+    // ❌ sacar width: '60px'
+    backgroundColor: user.role !== 'pf' && user.role !== 'admin' ? '#e9e9e9' : 'white'
+  }}
+  readOnly={user.role !== 'pf' && user.role !== 'admin'}
+  value={exerciseLogs[ex.name]?.[serieIndex]?.weight ?? ex.weight}
+  onChange={(e) => handleInputChange(ex.name, serieIndex, "weight", e.target.value)}
+/>
                     </div>
                   ))}
                 </div>

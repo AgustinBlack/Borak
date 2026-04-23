@@ -27,26 +27,49 @@ const AdminClients = ({ user }) => {
     const [editingRoutineDays, setEditingRoutineDays] = useState([]);
     const [editingUserId, setEditingUserId] = useState(null);
 
-    const fetchUsers = async () => {
-        try {
-            const response = await fetch("http://localhost:3000/users");
-            const data = await response.json();
-            setUsersData(data);
-        } catch (error) {
-            console.error("Error al cargar usuarios:", error);
-        } finally {
-            setLoading(false);
+    const handleStatusChange = async (userId, newStatus) => {
+    try {
+        const response = await fetch("http://localhost:3000/update-status", { // <-- Endpoint correcto
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId, status: newStatus }),
+        });
+
+
+            if (response.ok) {
+            setUsersData(prevUsers => 
+                prevUsers.map(u => u.id === userId ? { ...u, status: newStatus } : u)
+            );
         }
-    };
+    } catch (error) {
+        console.error("Error al actualizar estado:", error);
+    }
+};
+
+// Filtramos las listas basadas en usersData y el buscador
+    const pendingUsers = usersData.filter(u => u.status === 'pending');
+    const activeUsers = usersData.filter(u => 
+        u.status === 'approved' && 
+        (u.name.toLowerCase().includes(searchTerm.toLowerCase()) || u.email.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+
+    
+    const fetchUsers = async () => {
+    try {
+        // Quitamos el /api/ porque en server.js no existe ese prefijo
+        const response = await fetch("http://localhost:3000/users-with-routines"); 
+        const data = await response.json();
+        setUsersData(data);
+    } catch (error) {
+        console.error("Error al cargar usuarios:", error);
+    } finally {
+        setLoading(false);
+    }
+};
 
     useEffect(() => {
         fetchUsers();
     }, []);
-
-    const filteredUsers = usersData.filter(u =>
-        u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        u.email.toLowerCase().includes(searchTerm.toLowerCase())
-    );
 
     // =========================
     // CREAR RUTINA
@@ -253,15 +276,31 @@ const AdminClients = ({ user }) => {
         return <p className={styles.errorMsg}>No tienes permiso para acceder.</p>;
     }
 
+
+
     return (
         <div className={styles.adminContainer}>
-
             <div className={styles.header}>
                 <h1>Panel Profe: {user.name}</h1>
                 <button className={styles.btnCreate} onClick={() => setShowCreateModal(true)}>
                     + Crear Rutina Personalizada
                 </button>
             </div>
+            {/* --- SECCIÓN 1: USUARIOS PENDIENTES --- */}
+            {pendingUsers.length > 0 && (
+                <div className={styles.pendingSection}>
+                    <h2>Solicitudes de acceso</h2>
+                    {pendingUsers.map(pUser => (
+                        <div key={pUser.id} className={styles.pendingRow}>
+                            <p><strong>{pUser.name}</strong> ({pUser.email}) solicita unirse.</p>
+                            <div className={styles.actionButtons}>
+                                <button onClick={() => handleStatusChange(pUser.id, 'approved')} className={styles.btnApprove}>Aceptar</button>
+                                <button onClick={() => handleStatusChange(pUser.id, 'rejected')} className={styles.btnReject}>Rechazar</button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
 
             <div className={styles.searchBar}>
                 <input
@@ -271,48 +310,55 @@ const AdminClients = ({ user }) => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
             </div>
-
-            {loading ? <p>Cargando alumnos...</p> : (
-                <table className={styles.clientsTable}>
-                    <thead>
-                        <tr>
-                            <th>Nombre</th>
-                            <th>Email</th>
-                            <th>Rutina actual</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredUsers.map(u => (
-                            <tr key={u.id}>
-                                <td>{u.name}</td>
-                                <td>{u.email}</td>
-                                <td>{u.current_routine || 'Sin rutina'}</td>
-                                <td>
-
-                                    <button
-                                        className={styles.btnAssign}
-                                        onClick={() => {
-                                            setTargetClient(u.id);
-                                            setShowCreateModal(true);
-                                        }}
-                                    >
-                                        Asignar Rutina
-                                    </button>
-
-                                    <button
-                                        className={styles.btnEdit}
-                                        onClick={() => handleEditRoutine(u.id)}
-                                    >
-                                        Modificar Rutina
-                                    </button>
-
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+            {/* --- SECCIÓN 2: TABLA DE ALUMNOS ACTIVOS --- */}
+{loading ? (
+    <p>Cargando alumnos...</p>
+) : (
+    <table className={styles.clientsTable}>
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Rutina actual</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {activeUsers.length > 0 ? (
+                activeUsers.map((u) => (
+                    <tr key={u.id}>
+                        <td data-label="Nombre">{u.name}</td>
+                        <td data-label="Email">{u.email}</td>
+                        <td data-label="Rutina">{u.current_routine || "Sin rutina"}</td>
+                        <td>
+                            <button
+                                className={styles.btnAssign}
+                                onClick={() => {
+                                    setTargetClient(u.id);
+                                    setShowCreateModal(true);
+                                }}
+                            >
+                                Asignar Rutina
+                            </button>
+                            <button
+                                className={styles.btnEdit}
+                                onClick={() => handleEditRoutine(u.id)}
+                            >
+                                Modificar Rutina
+                            </button>
+                        </td>
+                    </tr>
+                ))
+            ) : (
+                <tr>
+                    <td colSpan="4" style={{ textAlign: "center" }}>
+                        No se encontraron alumnos activos.
+                    </td>
+                </tr>
             )}
+        </tbody>
+    </table>
+)}
 
             {/* MODAL CREAR */}
             {showCreateModal && (

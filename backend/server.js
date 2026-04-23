@@ -49,7 +49,7 @@ app.get("/users", async (req, res) => {
 app.get("/users-with-routines", async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT u.id, u.name, u.email, u.role,
+      `SELECT u.id, u.name, u.email, u.role, u.status,
         (SELECT name FROM routines r WHERE r.user_id = u.id ORDER BY created_at DESC LIMIT 1) AS current_routine
        FROM users u
        WHERE u.role = 'user'`
@@ -474,6 +474,56 @@ app.put("/profile/:userId", async (req, res) => {
   }
 });
 
+app.post('/update-status', async (req, res) => {
+    const { userId, status } = req.body; // status será 'approved' o 'rejected'
+
+    try {
+        // Validación básica
+        if (!['approved', 'rejected'].includes(status)) {
+            return res.status(400).json({ error: 'Estado no válido' });
+        }
+
+        // Ejecutamos el UPDATE en Neon
+        const result = await pool.query(
+            'UPDATE users SET status = $1 WHERE id = $2 RETURNING *',
+            [status, userId]
+        );
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+
+        res.json({ message: `Usuario ${status} correctamente`, user: result.rows[0] });
+    } catch (error) {
+        console.error('Error en Neon:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+/* ================================
+   VERIFICACIÓN ESTRUCTURA DB (MIGRACIÓN)
+================================ */
+const verificarEstructura = async () => {
+  try {
+    // 1. Crear columna status en users si no existe
+    await pool.query(`
+      ALTER TABLE users 
+      ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'approved'
+    `);
+    
+    // 2. Crear columna created_at en routines si no existe
+    await pool.query(`
+      ALTER TABLE routines 
+      ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    `);
+
+    console.log("✅ Base de datos verificada y actualizada.");
+  } catch (err) {
+    console.error("❌ Error verificando DB:", err.message);
+  }
+};
+
+verificarEstructura();
 
 /* ================================
    SERVER

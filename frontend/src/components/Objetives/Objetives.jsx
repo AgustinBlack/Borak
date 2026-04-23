@@ -54,7 +54,7 @@ const Objetives = ({ user }) => {
   return (
     <div className={styles.objetivesContainer}>
       <h1>Evolución: {user.name}</h1>
-      
+
       <div className={styles.chartWrapper}>
         <ResponsiveContainer width="100%" height={400}>
           <LineChart data={data}>
@@ -64,18 +64,18 @@ const Objetives = ({ user }) => {
             <YAxis yAxisId="right" orientation="right" />
             <Tooltip />
             <Legend />
-            <Line 
+            <Line
               yAxisId="left"
-              type="monotone" 
-              dataKey="repeticiones" 
-              stroke="#8884d8" 
+              type="monotone"
+              dataKey="repeticiones"
+              stroke="#8884d8"
               name="Reps"
             />
-            <Line 
+            <Line
               yAxisId="right"
-              type="monotone" 
-              dataKey="peso" 
-              stroke="#82ca9d" 
+              type="monotone"
+              dataKey="peso"
+              stroke="#82ca9d"
               name="Peso (kg)"
             />
           </LineChart>
@@ -85,10 +85,11 @@ const Objetives = ({ user }) => {
       <div className={styles.statsContainer}>
         <div className={styles.statCard}>
           <h3>Progreso Peso</h3>
-          <p className={styles.improvement}>+{mejoraPeso}% mejora</p>
+          <p className={styles.improvement}>
+            {mejoraPeso > 0 ? `+${mejoraPeso}` : mejoraPeso}% {mejoraPeso >= 0 ? 'mejora' : 'reducción'}</p>
           <span>De {inicialPeso}kg a {actualPeso}kg</span>
         </div>
-        
+
         <div className={styles.statCard}>
           <h3>Última Marca</h3>
           <p className={styles.improvement}>{actualPeso} kg</p>
@@ -97,7 +98,7 @@ const Objetives = ({ user }) => {
 
         <div className={styles.statCard}>
           <h3>Consistencia</h3>
-          <p className={styles.improvement}>{data.length * 10}%</p>
+          <p className={styles.improvement}>{Math.min(data.length * 10, 100)}%</p>
           <span>Basado en registros</span>
         </div>
       </div>
