@@ -1,53 +1,113 @@
-.ejercicios {
+.rutina {
+    width: 95%;
+    margin: auto;
+    margin-top: 20px;
+}
+
+/* 🔥 GRID PRINCIPAL */
+.layout {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    grid-template-areas:
+        "calendar training"
+        "full full";
+    gap: 30px;
+    margin-top: 30px;
+}
+
+/* ÁREAS */
+.calendario {
+    grid-area: calendar;
+}
+
+.entrenamientoDelDia {
+    grid-area: training;
+    gap: 10px;
+}
+
+.rutinaCompleta {
+    grid-area: full;
+}
+
+/* 🎯 CARDS (clave para UI moderna) */
+.card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* EJERCICIOS */
+.ejercicios{
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 15px;
 }
 
 .ejercicio {
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    padding: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 8px;
+    align-items: center;
+    margin-top: 15px;
+    gap: 20px;
 }
 
-.ejercicio h3 {
-    margin: 0;
-    flex: 1;
+.ejercicioInfo {
+    min-width: 150px;
 }
 
-.ejercicio button {
-    margin-left: 1rem;
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    background-color: #007bff;
-    color: white;
-}
-
-.ejercicio button:hover {
-    background-color: #0056b3;
-}
-
-.calificacion {
+/* INPUTS */
+.SetRepsContainer {
     display: flex;
-    gap: 0.5rem;
+    flex-direction: column;
+    gap: 6px;
 }
 
-.calificacion button {
-    background-color: #f8f9fa;
-    color: #333;
+.ejercicioDiv {
+    display: flex;
+    gap: 8px;
+}
+
+.input {
+    width: 60px;
+    padding: 5px;
+    border-radius: 6px;
     border: 1px solid #ccc;
 }
 
-.calificacion button:hover {
-    background-color: #e9ecef;
+/* BOTÓN */
+.saveButton {
+    margin-top: 20px;
+    padding: 12px;
+    width: 100%;
+    background: #4CAF50;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
 }
 
-.selected {
-    background-color: #28a745 !important;
-    color: white !important;
+/* MINI RUTINA */
+.ejercicioMini {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+/* 📱 RESPONSIVE */
+@media (max-width: 900px) {
+    .layout {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "calendar"
+            "training"
+            "full";
+    }
+
+    .ejercicio {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 }

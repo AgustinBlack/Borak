@@ -89,7 +89,8 @@ const DailyRutine = ({ user }) => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     userId: user.id,
-                    exercises: exercisesToSave
+                    exercises: exercisesToSave,
+                    date: selectedDate.toISOString()
                 })
             });
 

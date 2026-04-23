@@ -12,7 +12,7 @@ const Rutine = ({ user }) => {
   const [saving, setSaving] = useState(false);
   const [dailyRoutine, setDailyRoutine] = useState(null);
 
-  // --- 1. FETCH BACKEND ---
+  // --- FETCH BACKEND ---
   useEffect(() => {
     const fetchRoutine = async () => {
       try {
@@ -37,7 +37,7 @@ const Rutine = ({ user }) => {
     if (user?.id) fetchRoutine();
   }, [user]);
 
-  // --- 2. EFECTO PARA CALCULAR LA RUTINA DIARIA ---
+  // --- CALCULAR DÍA ---
   useEffect(() => {
     const dayOfWeek = selectedDate.getDay();
     const foundDay = routineData.find((day) => Number(day.weekDay) === dayOfWeek);
@@ -45,7 +45,7 @@ const Rutine = ({ user }) => {
     setExerciseLogs({});
   }, [selectedDate, routineData]);
 
-  // --- 3. INPUT HANDLER ---
+  // --- INPUT ---
   const handleInputChange = (exerciseName, setNumber, field, value) => {
     setExerciseLogs((prev) => ({
       ...prev,
@@ -59,7 +59,7 @@ const Rutine = ({ user }) => {
     }));
   };
 
-  // --- 4. GUARDAR ENTRENAMIENTO ---
+  // --- GUARDAR ---
   const handleSaveWorkout = async () => {
     setSaving(true);
     const exercisesToSave = [];
@@ -73,10 +73,8 @@ const Rutine = ({ user }) => {
 
         setKeys.forEach((key) => {
           totalReps += parseInt(sets[key].reps || 0);
-          // Lógica de peso: si es usuario común usa el base, si es PF usa el del input
-          const weightToUse = (user.role === 'pf' || user.role === 'admin') 
-            ? parseFloat(sets[key].weight || ex.weight)
-            : ex.weight;
+
+          const weightToUse = parseFloat(sets[key].weight_kg || ex.weight);
 
           if (weightToUse > maxWeight) maxWeight = weightToUse;
         });
@@ -98,13 +96,15 @@ const Rutine = ({ user }) => {
     });
 
     try {
-      const res = await fetch('http://localhost:3000/routine-completed', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("http://localhost:3000/routine-completed", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify({
           userId: user.id,
           exercises: exercisesToSave,
-          date: selectedDate.toISOString() 
+          date: selectedDate.toISOString()
         })
       });
 
@@ -124,85 +124,104 @@ const Rutine = ({ user }) => {
   if (!routineData || routineData.length === 0) return <p>No tienes una rutina asignada aún.</p>;
 
   return (
-    <>
+    <div className={styles.rutina}>
       <h2>{routineName}</h2>
 
-      <WorkoutCalendar
-        routineDays={routineData}
-        workoutSessions={workoutSessions}
-        onDateClick={(date) => setSelectedDate(date)}
-      />
+      <div className={styles.layout}>
 
-      <div style={{ marginTop: "40px" }}>
-        <h2>Rutina del día: {selectedDate.toLocaleDateString()}</h2>
-        <div className={styles.ejercicios}>
-          {dailyRoutine ? (
-            <div className={styles.diaContainer}>
-              <h3>{dailyRoutine.name}</h3>
-              {dailyRoutine.exercises.map((ex, index) => (
-                <div key={index} className={styles.ejercicio}>
-                  <h4>{ex.name}</h4>
-                  <p>Objetivo: {ex.series} series x {ex.reps} reps ({ex.weight}kg)</p>
+        {/* 🗓 CALENDARIO */}
+        <div className={`${styles.calendario} ${styles.card}`}>
+          <WorkoutCalendar
+            routineDays={routineData}
+            workoutSessions={workoutSessions}
+            onDateClick={(date) => setSelectedDate(date)}
+          />
+        </div>
 
-                  {Array.from({ length: ex.series }).map((_, serieIndex) => (
-                    <div key={serieIndex} style={{ display: 'flex', gap: '10px', marginTop: '5px' }}>
-                      <span>Set {serieIndex + 1}:</span>
-                      <input
-                        type="number"
-                        placeholder="Reps"
-                        style={{ width: '60px' }}
-                        onChange={(e) => handleInputChange(ex.name, serieIndex, "reps", e.target.value)}
-                      />
-                      <input
-                        type="number"
-                        placeholder="Kg"
-                        style={{ 
-                          width: '60px',
-                          backgroundColor: user.role !== 'pf' && user.role !== 'admin' ? '#e9e9e9' : 'white'
-                        }}
-                        readOnly={user.role !== 'pf' && user.role !== 'admin'}
-                        value={exerciseLogs[ex.name]?.[serieIndex]?.weight ?? ex.weight}
-                        onChange={(e) => handleInputChange(ex.name, serieIndex, "weight", e.target.value)}
-                      />
+        {/* 💪 ENTRENAMIENTO DEL DÍA */}
+        <div className={`${styles.entrenamientoDelDia} ${styles.card}`}>
+          <h2>Rutina del día: {selectedDate.toLocaleDateString()}</h2>
+
+          <div className={styles.ejercicios}>
+            {dailyRoutine ? (
+              <div className={styles.diaContainer}>
+                <h3>{dailyRoutine.name}</h3>
+
+                {dailyRoutine.exercises.map((ex, index) => (
+                  <div key={index} className={styles.ejercicio}>
+
+                    <div className={styles.ejercicioInfo}>
+                      <h4>{ex.name}</h4>
+                      <p>Objetivo: {ex.series} x {ex.reps} ({ex.weight}kg)</p>
                     </div>
-                  ))}
-                </div>
-              ))}
 
-              <button
-                onClick={handleSaveWorkout}
-                disabled={saving}
-                style={{ marginTop: '20px', padding: '10px 20px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px' }}
-              >
-                {saving ? "Guardando..." : "Finalizar Entrenamiento 🔥"}
-              </button>
-            </div>
-          ) : (
-            <div className={styles.descanso}>
-              <h3>💤 Día de descanso</h3>
-              <p>No hay entrenamiento asignado para hoy.</p>
-            </div>
-          )}
-        </div>
-      </div>
+                    <div className={styles.SetRepsContainer}>
+                      {Array.from({ length: ex.series }).map((_, serieIndex) => (
+                        <div key={serieIndex} className={styles.ejercicioDiv}>
+                          <input
+                            type="number"
+                            placeholder="Reps"
+                            className={styles.input}
+                            onChange={(e) =>
+                              handleInputChange(ex.name, serieIndex, "reps", e.target.value)
+                            }
+                          />
+                          <input
+                            type="number"
+                            placeholder="Kg"
+                            className={styles.input}
+                            // readOnly={user.role !== "pf" && user.role !== "admin"}
+                            // value={exerciseLogs[ex.name]?.[serieIndex]?.weight ?? ex.weight}
+                            onChange={(e) =>
+                              handleInputChange(ex.name, serieIndex, "weight_kg", e.target.value)
+                            }
+                          />
+                        </div>
+                      ))}
+                    </div>
 
-      <div style={{ marginTop: "60px" }}>
-        <h2>Rutina completa</h2>
-        <div className={styles.ejercicios}>
-          {routineData.map((day, dayIndex) => (
-            <div key={dayIndex} className={styles.diaContainer}>
-              <h3>{day.name}</h3>
-              {day.exercises.map((ex, index) => (
-                <div key={index} className={styles.ejercicio}>
-                  <h4>{ex.name}</h4>
-                  <p>{ex.series} sets x {ex.reps} reps - {ex.weight} kg</p>
-                </div>
-              ))}
-            </div>
-          ))}
+                  </div>
+                ))}
+
+                <button
+                  onClick={handleSaveWorkout}
+                  disabled={saving}
+                  className={styles.saveButton}
+                >
+                  {saving ? "Guardando..." : "Finalizar Entrenamiento 🔥"}
+                </button>
+              </div>
+            ) : (
+              <div>
+                <h3>💤 Día de descanso</h3>
+                <p>No hay entrenamiento asignado para hoy.</p>
+              </div>
+            )}
+          </div>
         </div>
+
+        {/* 📋 RUTINA COMPLETA */}
+        <div className={`${styles.rutinaCompleta} ${styles.card}`}>
+          <h2>Rutina completa</h2>
+
+          <div className={styles.ejercicios}>
+            {routineData.map((day, dayIndex) => (
+              <div key={dayIndex}>
+                <h3>{day.name}</h3>
+
+                {day.exercises.map((ex, index) => (
+                  <div key={index} className={styles.ejercicioMini}>
+                    <span>{ex.name}</span>
+                    <span>{ex.series} x {ex.reps} - {ex.weight}kg</span>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+
       </div>
-    </>
+    </div>
   );
 };
 
