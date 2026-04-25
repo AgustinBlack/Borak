@@ -519,6 +519,21 @@ app.post('/update-status', async (req, res) => {
   }
 });
 
+// GET /completed-sessions/:userId
+app.get('/completed-sessions/:userId', async (req, res) => {
+  const { userId } = req.params;
+  try {
+    const result = await pool.query(
+      'SELECT DISTINCT date_completed AS date FROM workout_logs WHERE user_id = $1 ORDER BY date_completed DESC',
+      [userId]
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error al obtener sesiones' });
+  }
+});
+
 /* ================================
    VERIFICACIÓN ESTRUCTURA DB (MIGRACIÓN)
 ================================ */

@@ -65,44 +65,16 @@
     gap: 3px;
 }
 
-.diaContainer {
-  display: flex;
-  flex-direction: column;
-}
-
 .ejercicio {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  background: #f8f9fa;
-  border: 1px solid #e0e0e0;
-  border-radius: 10px;
-  padding: 0.85rem 1rem;
-  transition: border-color 0.2s ease, transform 0.2s ease;
-}
-
-.ejercicio:hover {
-  border-color: #667eea;
-  transform: translateX(3px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
+    gap: 20px;
 }
 
 .ejercicioInfo {
-  min-width: 150px;
-  flex: 1;
-}
-
-.ejercicioInfo h4 {
-  margin: 0 0 4px 0;
-  font-size: 0.95rem;
-  color: #333;
-  font-weight: 600;
-}
-
-.ejercicioInfo p {
-  margin: 0;
-  font-size: 0.8rem;
-  color: #888;
+    min-width: 150px;
 }
 
 /* INPUTS */
