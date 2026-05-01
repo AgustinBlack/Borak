@@ -219,3 +219,28 @@
         font-size: 0.9rem;
     }
 }
+
+.sessionSummary {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #f0fff4;
+  border: 1px solid #28a745;
+  border-radius: 8px;
+}
+
+.sessionSummary h4 {
+  margin: 0 0 0.75rem 0;
+  color: #28a745;
+}
+
+.sessionExercise {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid #d4edda;
+  font-size: 0.9rem;
+}
+
+.sessionExercise:last-child {
+  border-bottom: none;
+}
