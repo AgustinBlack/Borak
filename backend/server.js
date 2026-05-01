@@ -524,7 +524,11 @@ app.get('/completed-sessions/:userId', async (req, res) => {
   const { userId } = req.params;
   try {
     const result = await pool.query(
-      'SELECT DISTINCT date_completed AS date FROM workout_logs WHERE user_id = $1 ORDER BY date_completed DESC',
+      `SELECT exercise_name, series_done, reps_done, weight_kg, 
+              date_completed AS date
+       FROM workout_logs 
+       WHERE user_id = $1 
+       ORDER BY date_completed DESC`,
       [userId]
     );
     res.json(result.rows);
