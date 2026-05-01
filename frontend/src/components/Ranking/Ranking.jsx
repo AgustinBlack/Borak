@@ -27,8 +27,7 @@ const Ranking = ({ user }) => {
     name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
 
   const podium = [ranking[1], ranking[0], ranking[2]].filter(Boolean);
-  const resto = ranking.slice(3);
-  const maxEntrenamientos = Number(ranking[0]?.entrenamientos) || 1;
+  const maxPuntos = Number(ranking[0]?.puntos) || 1;
 
   return (
     <div className={styles.rankingContainer}>
@@ -36,7 +35,6 @@ const Ranking = ({ user }) => {
         <h1>Ranking Borak</h1>
       </div>
 
-      {/* PODIO */}
       {ranking.length >= 1 && (
         <div className={styles.podium}>
           {podium.map((entry, i) => {
@@ -54,20 +52,17 @@ const Ranking = ({ user }) => {
                 <div className={styles.podName}>
                   {isYou ? "Vos" : entry.name.split(" ")[0]}
                 </div>
-                <div className={styles.podPts}>
-                  {entry.entrenamientos} entrenamientos
-                </div>
+                <div className={styles.podPts}>{entry.puntos} pts</div>
               </div>
             );
           })}
         </div>
       )}
 
-      {/* LISTA */}
       <div className={styles.list}>
         {ranking.map((entry, index) => {
           const isYou = entry.id === user?.id;
-          const pct = Math.round((Number(entry.entrenamientos) / maxEntrenamientos) * 100);
+          const pct = Math.round((Number(entry.puntos) / maxPuntos) * 100);
           return (
             <div
               key={entry.id}
@@ -83,7 +78,7 @@ const Ranking = ({ user }) => {
               <div className={styles.barWrap}>
                 <div className={styles.bar} style={{ width: `${pct}%` }} />
               </div>
-              <span className={styles.rowPts}>{entry.entrenamientos} entrenos</span>
+              <span className={styles.rowPts}>{entry.puntos} pts</span>
             </div>
           );
         })}

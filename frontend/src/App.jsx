@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import './App.css';
 
 import Nav from './components/Nav/Nav';
-import Home from './components/Home/Home';
 import Rutine from './components/Rutine/Rutine';
 import Progress from './components/Progress/Progress';
 import Objetives from './components/Objetives/Objetives';
@@ -38,7 +37,6 @@ function App() {
     <BrowserRouter>
       <Nav user={user} logout={handleLogout} isAdmin={isAdmin} />
       <Routes>
-        <Route path="/" element={<Home user={user} />} />
         <Route path="/seccion/Rutina" element={<Rutine user={user} />} />
         <Route path="/seccion/Objetivos" element={<Objetives user={user} />} />        
         <Route path='/seccion/Progresos' element={<Progress user={user} />} />        

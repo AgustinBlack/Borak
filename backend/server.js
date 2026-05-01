@@ -560,17 +560,206 @@ const verificarEstructura = async () => {
 verificarEstructura();
 
 /* ================================
-   RANKING
+   CALCULAR Y GUARDAR PUNTOS
+================================ */
+app.post("/calculate-points", async (req, res) => {
+  const { userId, date } = req.body;
+
+  try {
+    const dateStr = date.slice(0, 10);
+    const dateObj = new Date(dateStr);
+
+    console.log("=== CALCULATE POINTS ===");
+    console.log("userId:", userId, "dateStr:", dateStr);
+
+    // 1. Obtener rutina
+    const routineRes = await pool.query(
+      `SELECT r.id FROM routines r WHERE r.user_id = $1 ORDER BY r.created_at DESC LIMIT 1`,
+      [userId]
+    );
+    if (routineRes.rows.length === 0) return res.json({ points: 0, debug: "sin rutina" });
+    const routineId = routineRes.rows[0].id;
+
+    // 2. Logs de hoy
+    const logsRes = await pool.query(
+      `SELECT * FROM workout_logs WHERE user_id = $1 AND DATE(date_completed) = $2`,
+      [userId, dateStr]
+    );
+    console.log("logs de hoy:", logsRes.rows);
+    if (logsRes.rows.length === 0) return res.json({ points: 0, debug: "sin logs para esa fecha" });
+    const todayLogs = logsRes.rows;
+
+    // 3. Ejercicios de la rutina que matchean con los de hoy
+    const exerciseNamesHoy = todayLogs.map(r => r.exercise_name);
+    const exercisesRes = await pool.query(
+      `SELECT re.* FROM routine_exercises re
+       JOIN routine_days rd ON rd.id = re.day_id
+       WHERE rd.routine_id = $1
+       AND re.exercise_name = ANY($2)`,
+      [routineId, exerciseNamesHoy]
+    );
+    const routineExercises = exercisesRes.rows;
+
+    // 4. Tonelaje semana pasada (mismo ejercicio, 7 días atrás)
+    const lastWeekDate = new Date(dateObj);
+    lastWeekDate.setDate(lastWeekDate.getDate() - 7);
+    const lastWeekStr = lastWeekDate.toISOString().slice(0, 10);
+
+    const lastWeekRes = await pool.query(
+      `SELECT exercise_name, weight_kg, reps_done, series_done,
+              (weight_kg * reps_done * series_done) AS tonelaje
+       FROM workout_logs
+       WHERE user_id = $1 AND DATE(date_completed) = $2`,
+      [userId, lastWeekStr]
+    );
+    const lastWeekData = {};
+    lastWeekRes.rows.forEach(r => {
+      lastWeekData[r.exercise_name] = {
+        tonelaje: Number(r.tonelaje),
+        peso: Number(r.weight_kg),
+        reps: Number(r.reps_done),
+        series: Number(r.series_done)
+      };
+    });
+    console.log("datos semana pasada:", lastWeekData);
+
+    // 5. Calcular puntos
+    let totalPoints = 0;
+    const reasons = [];
+
+    // Punto base por asistir
+    totalPoints += 1;
+    reasons.push("Fue a entrenar (+1)");
+
+    for (const log of todayLogs) {
+      const routine = routineExercises.find(
+        r => r.exercise_name.toLowerCase() === log.exercise_name.toLowerCase()
+      );
+      if (!routine) continue;
+
+      const tonelajeHoy    = log.weight_kg * log.reps_done * log.series_done;
+      const anterior       = lastWeekData[log.exercise_name];
+      const tonelajeAnterior = anterior?.tonelaje || 0;
+      const pesoAnterior   = anterior?.peso || 0;
+      const repsAnterior   = anterior?.reps || 0;
+
+      const cumplioSeries = log.series_done >= routine.series;
+      const cumplioReps   = log.reps_done   >= routine.reps;
+      const cumlioPeso    = log.weight_kg   >= routine.weight_kg;
+      const mejorTonelaje = tonelajeHoy > tonelajeAnterior;
+
+      console.log(`--- ${log.exercise_name} ---`);
+      console.log(`hoy: ${log.series_done}s x ${log.reps_done}r @ ${log.weight_kg}kg | tonelaje: ${tonelajeHoy}`);
+      console.log(`rutina: ${routine.series}s x ${routine.reps}r @ ${routine.weight_kg}kg`);
+      console.log(`anterior: ${anterior?.series}s x ${repsAnterior}r @ ${pesoAnterior}kg | tonelaje: ${tonelajeAnterior}`);
+
+      // --- Puntos base por cumplir la rutina ---
+      if (cumplioSeries && cumplioReps && cumlioPeso) {
+        totalPoints += 3;
+        reasons.push(`${log.exercise_name}: cumplió series, reps y peso (+3)`);
+      } else if (mejorTonelaje && (!cumplioSeries || !cumplioReps)) {
+        totalPoints += 5;
+        reasons.push(`${log.exercise_name}: menor volumen pero mayor tonelaje (+5)`);
+      } else if (!cumplioSeries || !cumplioReps) {
+        totalPoints -= 1;
+        reasons.push(`${log.exercise_name}: menos volumen y menor tonelaje (-1)`);
+      }
+
+      // --- Bonus/penalización vs semana pasada ---
+      if (anterior) {
+        const masReps  = log.reps_done  > repsAnterior;
+        const masPeso  = log.weight_kg  > pesoAnterior;
+        const menosReps = log.reps_done < repsAnterior;
+        const menosPeso = log.weight_kg < pesoAnterior;
+        const mismosPeso = log.weight_kg === pesoAnterior;
+
+        // Mejor que la semana pasada: más reps y más peso
+        if (masReps && masPeso) {
+          totalPoints += 2;
+          reasons.push(`${log.exercise_name}: más reps y más peso que la semana pasada (+2)`);
+        }
+        // Mejor que la semana pasada: menos reps pero bastante más peso (>10% más)
+        else if (menosReps && log.weight_kg >= pesoAnterior * 1.1) {
+          totalPoints += 2;
+          reasons.push(`${log.exercise_name}: menos reps pero peso >10% mayor que la semana pasada (+2)`);
+        }
+        // Peor: menos reps con el mismo peso
+        else if (menosReps && mismosPeso) {
+          totalPoints -= 1;
+          reasons.push(`${log.exercise_name}: menos reps con el mismo peso que la semana pasada (-1)`);
+        }
+        // Peor: menos reps y menos peso
+        else if (menosReps && menosPeso) {
+          totalPoints -= 1;
+          reasons.push(`${log.exercise_name}: menos reps y menos peso que la semana pasada (-1)`);
+        }
+        // Peor: menos series que la semana pasada
+        else if (log.series_done < anterior.series) {
+          totalPoints -= 1;
+          reasons.push(`${log.exercise_name}: menos series que la semana pasada (-1)`);
+        }
+      }
+    }
+
+    // 6. Bonus semana completa
+    const startOfWeek = new Date(dateObj);
+    startOfWeek.setDate(dateObj.getDate() - dateObj.getDay());
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+    const weekLogsRes = await pool.query(
+      `SELECT DISTINCT DATE(date_completed) as fecha
+       FROM workout_logs
+       WHERE user_id = $1
+       AND date_completed >= $2
+       AND date_completed <= $3`,
+      [userId, startOfWeek.toISOString(), endOfWeek.toISOString()]
+    );
+
+    const routineDaysRes = await pool.query(
+      `SELECT COUNT(*) AS total FROM routine_days WHERE routine_id = $1`,
+      [routineId]
+    );
+    const totalDiasRutina = Number(routineDaysRes.rows[0].total);
+    const diasEntrenadosEstaSemana = weekLogsRes.rows.length;
+
+    console.log(`semana: ${diasEntrenadosEstaSemana}/${totalDiasRutina} días`);
+
+    if (diasEntrenadosEstaSemana >= totalDiasRutina) {
+      totalPoints += 10;
+      reasons.push("Completó la semana al 100% (+10 BONUS)");
+    }
+
+    console.log("TOTAL POINTS:", totalPoints);
+    console.log("REASONS:", reasons);
+
+    // 7. Guardar puntos
+    await pool.query(
+      `INSERT INTO user_points (user_id, points, reason, date)
+       VALUES ($1, $2, $3, $4)`,
+      [userId, totalPoints, reasons.join(" | "), dateStr]
+    );
+
+    res.json({ points: totalPoints, reasons });
+
+  } catch (err) {
+    console.error("ERROR calculate-points:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* ================================
+   RANKING POR PUNTOS
 ================================ */
 app.get("/ranking", async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT u.id, u.name, COUNT(DISTINCT DATE(wl.date_completed)) AS entrenamientos
+      `SELECT u.id, u.name, COALESCE(SUM(up.points), 0) AS puntos
        FROM users u
-       LEFT JOIN workout_logs wl ON wl.user_id = u.id
+       LEFT JOIN user_points up ON up.user_id = u.id
        WHERE u.role = 'user'
        GROUP BY u.id, u.name
-       ORDER BY entrenamientos DESC`
+       ORDER BY puntos DESC`
     );
     res.json(result.rows);
   } catch (err) {
