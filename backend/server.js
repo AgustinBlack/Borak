@@ -208,17 +208,21 @@ app.post("/assign-routine", async (req, res) => {
       for (const ex of day.exercises) {
         await pool.query(
           `INSERT INTO routine_exercises 
-           (routine_id, exercise_name, series, reps, weight_kg, day_id)
-           VALUES ($1, $2, $3, $4, $5, $6)`,
+   (routine_id, day_id, exercise_name, series, reps, weight_kg, section, exercise_type, duration_seconds)
+   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
           [
             routineId,
+            dayId,
             ex.name,
             ex.series,
             ex.reps,
             ex.weight,
-            dayId
+            ex.section || "fisico",
+            ex.type || "reps",
+            ex.duration || null
           ]
         );
+
       }
     }
 
@@ -227,6 +231,66 @@ app.post("/assign-routine", async (req, res) => {
   } catch (error) {
     console.error("ERROR REAL:", error);
     res.status(500).json({ error: "Error al asignar rutina" });
+  }
+});
+
+/* ================================
+   OBTENER EJERCICIOS
+================================ */
+
+app.get('/exercises', async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM exercises ORDER BY name ASC'
+    );
+
+    res.json(result.rows);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      message: 'Error obteniendo ejercicios'
+    });
+  }
+});
+
+app.post('/exercises', async (req, res) => {
+  try {
+    const { name, video_url } = req.body;
+
+    if (!name?.trim()) {
+      return res.status(400).json({
+        message: 'El nombre es obligatorio'
+      });
+    }
+
+    const existing = await pool.query(
+      'SELECT * FROM exercises WHERE LOWER(name) = LOWER($1)',
+      [name]
+    );
+
+    if (existing.rows.length > 0) {
+      return res.status(400).json({
+        message: 'El ejercicio ya existe'
+      });
+    }
+    const result = await pool.query(
+      `
+      INSERT INTO exercises (name, video_url)
+      VALUES ($1, $2)
+      RETURNING *
+      `,
+      [name, video_url || null]
+    );
+
+    res.json(result.rows[0]);
+
+  } catch (err) {
+    console.error(err);
+
+    res.status(500).json({
+      message: 'Error creando ejercicio'
+    });
   }
 });
 
@@ -277,9 +341,19 @@ app.put("/update-routine/:userId", async (req, res) => {
       for (const ex of day.exercises) {
         await pool.query(
           `INSERT INTO routine_exercises 
-           (routine_id, day_id, exercise_name, series, reps, weight_kg)
-           VALUES ($1, $2, $3, $4, $5, $6)`,
-          [routineId, dayId, ex.name, ex.series, ex.reps, ex.weight]
+   (routine_id, day_id, exercise_name, series, reps, weight_kg, section, exercise_type, duration_seconds)
+   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+          [
+            routineId,
+            dayId,
+            ex.name,
+            ex.series,
+            ex.reps,
+            ex.weight,
+            ex.section || "fisico",
+            ex.type || "reps",
+            ex.duration || null
+          ]
         );
       }
     }
@@ -641,15 +715,15 @@ app.post("/calculate-points", async (req, res) => {
       );
       if (!routine) continue;
 
-      const tonelajeHoy    = log.weight_kg * log.reps_done * log.series_done;
-      const anterior       = lastWeekData[log.exercise_name];
+      const tonelajeHoy = log.weight_kg * log.reps_done * log.series_done;
+      const anterior = lastWeekData[log.exercise_name];
       const tonelajeAnterior = anterior?.tonelaje || 0;
-      const pesoAnterior   = anterior?.peso || 0;
-      const repsAnterior   = anterior?.reps || 0;
+      const pesoAnterior = anterior?.peso || 0;
+      const repsAnterior = anterior?.reps || 0;
 
       const cumplioSeries = log.series_done >= routine.series;
-      const cumplioReps   = log.reps_done   >= routine.reps;
-      const cumlioPeso    = log.weight_kg   >= routine.weight_kg;
+      const cumplioReps = log.reps_done >= routine.reps;
+      const cumlioPeso = log.weight_kg >= routine.weight_kg;
       const mejorTonelaje = tonelajeHoy > tonelajeAnterior;
 
       console.log(`--- ${log.exercise_name} ---`);
@@ -671,8 +745,8 @@ app.post("/calculate-points", async (req, res) => {
 
       // --- Bonus/penalización vs semana pasada ---
       if (anterior) {
-        const masReps  = log.reps_done  > repsAnterior;
-        const masPeso  = log.weight_kg  > pesoAnterior;
+        const masReps = log.reps_done > repsAnterior;
+        const masPeso = log.weight_kg > pesoAnterior;
         const menosReps = log.reps_done < repsAnterior;
         const menosPeso = log.weight_kg < pesoAnterior;
         const mismosPeso = log.weight_kg === pesoAnterior;
