@@ -1,11 +1,10 @@
-import { BrowserRouter, Routes, Route, Link, Navigate } from "react-router-dom"; 
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"; 
 import { useState, useEffect } from 'react';
 import './App.css';
 
 import Nav from './components/Nav/Nav';
 import Rutine from './components/Rutine/Rutine';
 import Progress from './components/Progress/Progress';
-import Objetives from './components/Objetives/Objetives';
 import Profile from './components/Profile/Profile';
 import Us from './components/Us/Us';
 import AdminClients from './components/AdminClients/AdminClients';
@@ -38,8 +37,7 @@ function App() {
       <Nav user={user} logout={handleLogout} isAdmin={isAdmin} />
       <Routes>
         <Route path="/seccion/Rutina" element={<Rutine user={user} />} />
-        <Route path="/seccion/Objetivos" element={<Objetives user={user} />} />        
-        <Route path='/seccion/Progresos' element={<Progress user={user} />} />        
+        <Route path='/seccion/Progresos' element={<Progress user={user} />} />
         <Route path="/seccion/Perfil" element={<Profile user={user} />} />    
         <Route path="/seccion/Ranking" element={<Ranking user={user} />} />
         <Route path="/seccion/Us" element={<Us />} />

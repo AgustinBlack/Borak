@@ -15,6 +15,11 @@ const Rutine = ({ user }) => {
   const [completedSessions, setCompletedSessions] = useState({});
   const [inputKey, setInputKey] = useState(0);
 
+
+  const blockNegative = (e) => {
+    if (e.key === "-" || e.key === "e") e.preventDefault();
+  };
+
   useEffect(() => {
     const fetchRoutine = async () => {
       try {
@@ -250,6 +255,7 @@ const Rutine = ({ user }) => {
                           placeholder="Reps"
                           className={styles.input}
                           min="0"
+                          onKeyDown={blockNegative}
                           onChange={(e) => {
                             const value = Math.max(0, Number(e.target.value));
                             handleInputChange(ex.name, serieIndex, "reps", value);
@@ -260,6 +266,7 @@ const Rutine = ({ user }) => {
                           placeholder="Kg"
                           className={styles.input}
                           min="0"
+                          onKeyDown={blockNegative}
                           onChange={(e) => {
                             const value = Math.max(0, Number(e.target.value));
                             handleInputChange(ex.name, serieIndex, "weight_kg", value);

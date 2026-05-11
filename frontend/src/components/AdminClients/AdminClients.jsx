@@ -35,14 +35,18 @@ const AdminClients = ({ user }) => {
             body: JSON.stringify({ userId, status: newStatus }),
         });
 
-
-            if (response.ok) {
+        if (response.ok) {
+            const userName = usersData.find(u => u.id === userId)?.name || 'Usuario';
+            alert(`${userName} ha sido ${newStatus === 'approved' ? 'aprobado' : 'rechazado'}.`);
             setUsersData(prevUsers => 
                 prevUsers.map(u => u.id === userId ? { ...u, status: newStatus } : u)
             );
+        } else {
+            alert('Error al actualizar el estado.');
         }
     } catch (error) {
         console.error("Error al actualizar estado:", error);
+        alert('Error de conexión.');
     }
 };
 
@@ -71,6 +75,17 @@ const AdminClients = ({ user }) => {
         fetchUsers();
     }, []);
 
+
+useEffect(() => {
+  if (user?.role !== 'pf') return;
+
+  const interval = setInterval(() => {
+    fetchUsers();
+  }, 30000); // cada 30 segundos
+
+  return () => clearInterval(interval); // limpia al desmontar
+}, [user]);
+
     // =========================
     // CREAR RUTINA
     // =========================
@@ -85,6 +100,23 @@ const AdminClients = ({ user }) => {
         }
     ]);
 };
+
+const [prevPendingCount, setPrevPendingCount] = useState(0);
+const [showNotification, setShowNotification] = useState(false);
+const [newPendingName, setNewPendingName] = useState("");
+
+// Detectar cambio en pendientes
+useEffect(() => {
+  if (pendingUsers.length > prevPendingCount && prevPendingCount !== 0) {
+    const newest = pendingUsers[pendingUsers.length - 1];
+    setNewPendingName(newest?.name || "Un usuario");
+    setShowNotification(true);
+
+    // Auto-ocultar después de 5 segundos
+    setTimeout(() => setShowNotification(false), 5000);
+  }
+  setPrevPendingCount(pendingUsers.length);
+}, [pendingUsers]);
 
     const addExerciseToDay = (dayIndex) => {
         const updated = [...routineDays];
@@ -280,6 +312,21 @@ const AdminClients = ({ user }) => {
 
     return (
         <div className={styles.adminContainer}>
+            {/* 🔔 NOTIFICACIÓN */}
+    {showNotification && (
+      <div className={styles.notification}>
+        <span>🔔 <strong>{newPendingName}</strong> quiere unirse al gimnasio.</span>
+        <button onClick={() => setShowNotification(false)}>✕</button>
+      </div>
+    )}
+
+    <div className={styles.header}>
+      <h1>Panel Profe: {user.name}</h1>
+      {/* También agregá el contador en el título */}
+      {pendingUsers.length > 0 && (
+        <span className={styles.badge}>{pendingUsers.length}</span>
+      )}
+    </div>
             <div className={styles.header}>
                 <h1>Panel Profe: {user.name}</h1>
                 {/* <button className={styles.btnCreate} onClick={() => setShowCreateModal(true)}>

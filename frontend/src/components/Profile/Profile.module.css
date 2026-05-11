@@ -253,6 +253,39 @@
   background: #5568d3;
 }
 
+/* Botón Cambiar Avatar */
+.changeAvatarBtn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.changeAvatarBtn:hover {
+  background: linear-gradient(135deg, #5568d3 0%, #6a4196 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.avatarStatus {
+  margin-top: 0.75rem;
+  color: #334155;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  padding: 0.65rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
 /* Botones de acción */
 .formActions {
   display: flex;
@@ -342,3 +375,4 @@
     width: 100%;
   }
 }
+
