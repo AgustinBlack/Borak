@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import imageCompression from 'browser-image-compression';
 import styles from './Profile.module.css';
 
 const Profile = ({ user }) => {
@@ -6,6 +7,46 @@ const Profile = ({ user }) => {
   const [profile, setProfile] = useState(null);
   const [formData, setFormData] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [avatarStatus, setAvatarStatus] = useState('');
+
+  const [previewAvatar, setPreviewAvatar] = useState(null);
+  const fileInputRef = useRef(null);
+
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) {
+      setAvatarStatus('Imagen no cargada. Selecciona un archivo.');
+      return;
+    }
+
+    setAvatarStatus('Cargando imagen...');
+
+    try {
+      // Opciones de compresión
+      const options = {
+        maxSizeMB: 1, // Máximo 1MB
+        maxWidthOrHeight: 500, // Máximo 500px de ancho o alto
+        useWebWorker: true,
+      };
+
+      const compressedFile = await imageCompression(file, options);
+
+      // Preview local
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewAvatar(reader.result); // base64 comprimido
+        setAvatarStatus('Imagen cargada con éxito.');
+      };
+      reader.readAsDataURL(compressedFile);
+    } catch (error) {
+      console.error('Error comprimiendo imagen:', error);
+      setAvatarStatus('Imagen no cargada. Intenta otra imagen.');
+    }
+  };
+
+  const handleAvatarButtonClick = () => {
+    fileInputRef.current.click();
+  };
 
   useEffect(() => {
 
@@ -69,26 +110,26 @@ const Profile = ({ user }) => {
     });
   };
 
-  // 🔥 AHORA GUARDA EN BACKEND
+  // AHORA GUARDA EN BACKEND
   const handleSave = async () => {
-    try {
-      const res = await fetch(`http://localhost:3000/profile/${user.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(formData)
-      });
+  try {
+    const res = await fetch(`http://localhost:3000/profile/${user.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...formData,
+        avatar: previewAvatar || formData.avatar // 🔥
+      })
+    });
 
-      const data = await res.json();
-
-      setProfile(data);
-      setIsEditing(false);
-
-    } catch (error) {
-      console.error("Error guardando:", error);
-    }
-  };
+    const data = await res.json();
+    setProfile(data);
+    setPreviewAvatar(null);
+    setIsEditing(false);
+  } catch (error) {
+    console.error("Error guardando:", error);
+  }
+};
 
   const handleCancel = () => {
     setFormData(profile);
@@ -106,25 +147,36 @@ const Profile = ({ user }) => {
 
         {/* HEADER */}
         <div className={styles.profileHeader}>
-          <img 
-            src={profile.avatar} 
-            alt="Avatar" 
-            className={styles.avatar}
-          />
+          <div className={styles.avatarWrapper}>
+            <img
+              src={previewAvatar || profile.avatar}
+              alt="Avatar"
+              className={styles.avatar}
+            />
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={handleAvatarChange}
+            />
+          </div>
+
 
           <div className={styles.headerInfo}>
             <h1>{profile.nombre}</h1>
             <p>{profile.email}</p>
           </div>
 
-          <button 
+          <button
             className={styles.editBtn}
             onClick={() => {
               setIsEditing(!isEditing);
               setFormData(profile);
+              setPreviewAvatar(null);
             }}
           >
-            {isEditing ? '✕' : '✎ Editar'}
+            {isEditing ? "✕" : "✎ Editar"}
           </button>
         </div>
 
@@ -183,6 +235,19 @@ const Profile = ({ user }) => {
                   value={formData.experiencia}
                   onChange={handleInputChange}
                 />
+              </div>
+
+              <div className={styles.formGroup}>
+                <button
+                  type="button"
+                  className={styles.changeAvatarBtn}
+                  onClick={handleAvatarButtonClick}
+                >
+                  📷 Cambiar Avatar
+                </button>
+                {avatarStatus && (
+                  <p className={styles.avatarStatus}>{avatarStatus}</p>
+                )}
               </div>
 
               {/* OBJETIVOS */}

@@ -57,9 +57,8 @@ function Register() {
       const data = await response.json();
 
       if (response.ok) {
-        alert("Usuario registrado correctamente 🔥");
-        localStorage.setItem("user", JSON.stringify(data));
-        window.location.reload();
+        alert("Su registro está pendiente de aprobación por un entrenador personal.");
+        // No guardar en localStorage ni recargar, ya que no puede loguearse aún
       } else {
         alert(data.message || "Error al registrar usuario");
       }
