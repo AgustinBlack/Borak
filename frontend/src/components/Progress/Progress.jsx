@@ -25,6 +25,12 @@ const Progress = ({ user }) => {
 
   if (!selectedEjercicio) return <p>Cargando datos...</p>;
 
+  const historico = selectedEjercicio.historico || [];
+  const inicialPeso = historico[0]?.peso || 0;
+  const actualPeso = historico[historico.length - 1]?.peso || 0;
+  const mejoraPeso = inicialPeso > 0 ? (((actualPeso - inicialPeso) / inicialPeso) * 100).toFixed(0) : 0;
+  const consistencia = Math.min(historico.length * 10, 100);
+
   const sesionesPorFecha = selectedEjercicio.sesionesCrudas || {};
   const fechasOrdenadas = Object.keys(sesionesPorFecha).sort((a, b) => {
     const [dA, mA, yA] = a.split("/");
@@ -85,14 +91,34 @@ const Progress = ({ user }) => {
       </ResponsiveContainer>
 
       {fechasOrdenadas.length > 0 && (
-        <div className={clases.ultimaSesionWrapper}>
-          <div className={clases.ultimaSesionHeader}>
-            <h2 className={clases.ultimaSesionTitle}>Mejor serie por sesión</h2>
+        <>
+          <div className={clases.ultimaSesionWrapper}>
+            <div className={clases.ultimaSesionHeader}>
+              <h2 className={clases.ultimaSesionTitle}>Mejor serie por sesión</h2>
+            </div>
+            <div className={clases.seriesGrid}>
+              {renderTarjetas(fechasOrdenadas)}
+            </div>
           </div>
-          <div className={clases.seriesGrid}>
-            {renderTarjetas(fechasOrdenadas)}
+
+          <div className={clases.statsContainer}>
+            <div className={clases.statCard}>
+              <h3>Progreso de peso</h3>
+              <p className={clases.improvement}>{mejoraPeso > 0 ? `+${mejoraPeso}` : mejoraPeso}%</p>
+              <span>{inicialPeso}kg → {actualPeso}kg</span>
+            </div>
+            <div className={clases.statCard}>
+              <h3>Último registro</h3>
+              <p className={clases.improvement}>{actualPeso} kg</p>
+              <span>Último peso registrado</span>
+            </div>
+            <div className={clases.statCard}>
+              <h3>Consistencia</h3>
+              <p className={clases.improvement}>{consistencia}%</p>
+              <span>Basado en tus sesiones</span>
+            </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   );

@@ -21,8 +21,7 @@ export default function HamburgerMenu({ user, logout, isAdmin }) {
       <div className={`${clases.menu} ${open ? clases.show : ""}`}>
         <ul onClick={closeMenu}>
           <li><Link className={clases.link} to="/seccion/Rutina">Rutina</Link></li>
-          <li><Link className={clases.link} to="/seccion/Progresos">Progresos</Link></li>
-          <li><Link className={clases.link} to="/seccion/Objetivos">Objetivos</Link></li>
+          <li><Link className={clases.link} to="/seccion/Progresos">Progreso y Objetivos</Link></li>
           <li><Link className={clases.link} to="/seccion/Perfil">Perfil</Link></li>
           <li><Link className={clases.link} to="/seccion/Ranking">Ranking</Link></li>
           <li><Link className={clases.link} to="/seccion/US">Nosotros</Link></li>

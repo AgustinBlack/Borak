@@ -5,7 +5,7 @@ const pool = require("./config/db");
 const app = express();
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 
 /* ================================
    LOGIN
@@ -15,7 +15,7 @@ app.post("/login", async (req, res) => {
     const { email, password } = req.body;
 
     const result = await pool.query(
-      "SELECT id, name, email, role FROM users WHERE email = $1 AND password = $2",
+      "SELECT id, name, email, role, status FROM users WHERE email = $1 AND password = $2",
       [email, password]
     );
 
@@ -23,7 +23,13 @@ app.post("/login", async (req, res) => {
       return res.status(401).json({ message: "Credenciales incorrectas" });
     }
 
-    res.json(result.rows[0]);
+    const user = result.rows[0];
+
+    if (user.status !== 'approved') {
+      return res.status(403).json({ message: "Su registro está pendiente de aprobación por un entrenador personal." });
+    }
+
+    res.json(user);
 
   } catch (error) {
     console.error(error);
@@ -79,8 +85,8 @@ app.post("/register", async (req, res) => {
     // 1. Crear usuario
     const newUser = await pool.query(
       `INSERT INTO users 
-      (name, email, password, weight, height, experience) 
-      VALUES ($1, $2, $3, $4, $5, $6) 
+      (name, email, password, weight, height, experience, status) 
+      VALUES ($1, $2, $3, $4, $5, $6, 'pending') 
       RETURNING id, name, email`,
       [name, email, password, weight, height, experience]
     );
@@ -376,7 +382,7 @@ app.get("/profile/:userId", async (req, res) => {
   try {
     // 1. Usuario
     const userRes = await pool.query(
-      `SELECT id, name, email, weight, height, experience
+      `SELECT id, name, email, weight, height, experience, avatar
        FROM users WHERE id = $1`,
       [userId]
     );
@@ -403,7 +409,7 @@ app.get("/profile/:userId", async (req, res) => {
       altura: user.height,
       experiencia: user.experience,
       objetivos: goals,
-      avatar: `https://ui-avatars.com/api/?name=${user.name}`
+      avatar: user.avatar || `https://ui-avatars.com/api/?name=${user.name}`
     });
 
   } catch (error) {
@@ -507,7 +513,8 @@ app.put("/profile/:userId", async (req, res) => {
     peso,
     altura,
     experiencia,
-    objetivos
+    objetivos,
+    avatar
   } = req.body;
 
   try {
@@ -519,11 +526,16 @@ app.put("/profile/:userId", async (req, res) => {
            email = $2,
            weight = $3,
            height = $4,
-           experience = $5
-       WHERE id = $6
-       RETURNING id, name, email, weight, height, experience`,
-      [nombre, email, peso, altura, experiencia, userId]
+           experience = $5,
+           avatar = $6
+       WHERE id = $7
+       RETURNING id, name, email, weight, height, experience, avatar`,
+      [nombre, email, peso, altura, experiencia, avatar, userId]
     );
+
+    if (updatedUser.rows.length === 0) {
+      return res.status(404).json({ error: "Usuario no encontrado" });
+    }
 
     // 2. Borrar objetivos anteriores
     await pool.query(
@@ -555,7 +567,7 @@ app.put("/profile/:userId", async (req, res) => {
       altura: user.height,
       experiencia: user.experience,
       objetivos,
-      avatar: `https://ui-avatars.com/api/?name=${user.name}`
+      avatar: user.avatar || `https://ui-avatars.com/api/?name=${user.name}`
     });
 
   } catch (error) {
